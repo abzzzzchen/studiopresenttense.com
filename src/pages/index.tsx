@@ -1,6 +1,15 @@
-import { useCallback, useLayoutEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 const REFERENCE_FONT_SIZE = 100;
+
+const HERO_IMAGES = ["/images/pt-1.jpg", "/images/pt-2.png"];
+const HERO_INTERVAL_MS = 1500;
 
 type Project = {
   project: string;
@@ -177,51 +186,199 @@ function ProjectGroup({
   projects: Project[];
 }) {
   return (
-    <div className="grid grid-cols-12 gap-5 text-[16px]">
-      <div className="col-span-2">
-        <p className="mb-2">{label}</p>
-        <div className="flex flex-col gap-[2px]">
-          {projects.map((project, i) => (
-            <p key={i}>{project.project}</p>
-          ))}
-        </div>
-      </div>
-      <div className="col-span-2">
-        <p className="mb-2">Services</p>
-        <div className="flex flex-col gap-[2px]">
-          {projects.map((project, i) => (
-            <p key={i}>{project.services}</p>
-          ))}
-        </div>
-      </div>
-      <div className="col-span-2">
-        <p className="mb-2">Sector</p>
-        <div className="flex flex-col gap-[2px]">
-          {projects.map((project, i) => (
-            <p key={i}>{project.sector}</p>
-          ))}
-        </div>
-      </div>
-      <div className="col-span-4">
-        <p className="mb-2">In Practice</p>
-        <div className="flex flex-col gap-[2px]">
-          {projects.map((project, i) => (
-            <p key={i}>{project.inPractice}</p>
-          ))}
-        </div>
-      </div>
-      <div className="col-span-2">
-        <p className="mb-2">With</p>
+    <div className="text-[16px]">
+      {/* mobile: one stacked card per project */}
+      <div className="flex flex-col gap-2 sm:hidden">
         {projects.map((project, i) => (
-          <p key={i}>{project.with || " "}</p>
+          <div key={i}>
+            <div className="grid grid-cols-12">
+              <p className="col-span-4">{label}</p>
+              <p className="col-span-8">{project.project}</p>
+            </div>
+            <div className="grid grid-cols-12">
+              <p className="col-span-4">Services</p>
+              <p className="col-span-8">{project.services}</p>
+            </div>
+            <div className="grid grid-cols-12">
+              <p className="col-span-4">Sector</p>
+              <p className="col-span-8">{project.sector}</p>
+            </div>
+            <div className="grid grid-cols-12">
+              <p className="col-span-4">In Practice</p>
+              <p className="col-span-8">{project.inPractice}</p>
+            </div>
+            <div className="grid grid-cols-12">
+              <p className="col-span-4">With</p>
+              <p className="col-span-8">{project.with}</p>
+            </div>
+          </div>
         ))}
+      </div>
+
+      {/* desktop: column-major, hidden on mobile */}
+      <div className="hidden grid-cols-12 gap-5 sm:grid">
+        <div className="col-span-2">
+          <p className="mb-2">{label}</p>
+          <div className="flex flex-col gap-[2px]">
+            {projects.map((project, i) => (
+              <p key={i}>{project.project}</p>
+            ))}
+          </div>
+        </div>
+        <div className="col-span-2">
+          <p className="mb-2">Services</p>
+          <div className="flex flex-col gap-[2px]">
+            {projects.map((project, i) => (
+              <p key={i}>{project.services}</p>
+            ))}
+          </div>
+        </div>
+        <div className="col-span-2">
+          <p className="mb-2">Sector</p>
+          <div className="flex flex-col gap-[2px]">
+            {projects.map((project, i) => (
+              <p key={i}>{project.sector}</p>
+            ))}
+          </div>
+        </div>
+        <div className="col-span-4">
+          <p className="mb-2">In Practice</p>
+          <div className="flex flex-col gap-[2px]">
+            {projects.map((project, i) => (
+              <p key={i}>{project.inPractice}</p>
+            ))}
+          </div>
+        </div>
+        <div className="col-span-2">
+          <p className="mb-2">With</p>
+          {projects.map((project, i) => (
+            <p key={i}>{project.with || " "}</p>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
+const EMAIL = "hello@studiopresenttense.com";
+
+type CharTransform = { y: number; sx: number; sy: number };
+
+function randomTransform(): CharTransform {
+  return {
+    y: (Math.random() - 0.5) * 32,
+    sx: Math.random() > 0.5 ? -1 : 1,
+    sy: Math.random() > 0.5 ? -1 : 1,
+  };
+}
+
+// Desktop-only hover animation (ported from the Figma export): hovering a
+// character displaces it and its ±2 neighbours with a random vertical offset
+// and axis flips, plus ghost copies above and below. The transform is instant.
+// Keeps `data-fit-line` so the existing width-fitting logic still scales it.
+function HoverEmail() {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [transforms, setTransforms] = useState<Record<number, CharTransform>>(
+    {},
+  );
+  const chars = EMAIL.split("");
+
+  const handleEnter = (i: number) => {
+    setActiveIndex(i);
+    setTransforms((prev) => {
+      const next = { ...prev };
+      for (let d = -2; d <= 2; d++) {
+        const idx = i + d;
+        if (idx >= 0 && idx < chars.length && !next[idx]) {
+          next[idx] = randomTransform();
+        }
+      }
+      return next;
+    });
+  };
+
+  return (
+    <h1
+      data-fit-line
+      onMouseLeave={() => setActiveIndex(null)}
+      style={{
+        display: "inline-block",
+        whiteSpace: "nowrap",
+        margin: 0,
+        lineHeight: 1,
+        letterSpacing: "-0.02em",
+      }}
+    >
+      {chars.map((ch, i) => {
+        const isActive =
+          activeIndex !== null && Math.abs(i - activeIndex) <= 2;
+        const t = transforms[i];
+        const ghostTransform =
+          t &&
+          `translateY(${t.y * 0.6}px) scaleX(${t.sx}) scaleY(${t.sy})`;
+
+        return (
+          <span
+            key={i}
+            onMouseEnter={() => handleEnter(i)}
+            style={{
+              display: "inline-block",
+              position: "relative",
+              cursor: "default",
+              transform:
+                isActive && t
+                  ? `translateY(${t.y}px) scaleX(${t.sx}) scaleY(${t.sy})`
+                  : undefined,
+            }}
+          >
+            {ch}
+            {isActive && t && (
+              <span
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: "-1em",
+                  transform: ghostTransform,
+                  pointerEvents: "none",
+                }}
+              >
+                {ch}
+              </span>
+            )}
+            {isActive && t && (
+              <span
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: "1em",
+                  transform: ghostTransform,
+                  pointerEvents: "none",
+                }}
+              >
+                {ch}
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </h1>
+  );
+}
+
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Cycle the hero image every 1.5s, swapping instantly (no animation).
+  useEffect(() => {
+    const id = setInterval(() => {
+      setActiveIndex((i) => (i + 1) % HERO_IMAGES.length);
+    }, HERO_INTERVAL_MS);
+
+    return () => clearInterval(id);
+  }, []);
 
   const fitToViewport = useCallback(() => {
     const hero = heroRef.current;
@@ -291,25 +448,14 @@ export default function Home() {
             ))}
           </h1>
         </div>
-        {/* desktop: single line scaled to fill the width */}
+        {/* desktop: single line scaled to fill the width, with hover animation */}
         <div className="hidden sm:block">
-          <h1
-            data-fit-line
-            style={{
-              display: "inline-block",
-              whiteSpace: "nowrap",
-              margin: 0,
-              lineHeight: 1,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            hello@studiopresenttense.com
-          </h1>
+          <HoverEmail />
         </div>
         <div className="absolute bottom-0 left-0 pb-5">
           <img
             className="aspect-[4.5/3] bg-[red] w-[75vw] sm:w-[27vw]"
-            src="/images/pt-test.jpg"
+            src={HERO_IMAGES[activeIndex]}
             alt="Studio Present Tense"
           ></img>
         </div>
