@@ -4,12 +4,18 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type ComponentProps,
 } from "react";
+import type { GetStaticProps } from "next";
+import { PortableText } from "next-sanity";
+
+import { client } from "../../sanity/lib/client";
+import { urlFor } from "../../sanity/lib/image";
 
 const REFERENCE_FONT_SIZE = 100;
-
-const HERO_IMAGES = ["/images/pt-1.jpg", "/images/pt-2.png"];
 const HERO_INTERVAL_MS = 1500;
+
+type StudioBlocks = ComponentProps<typeof PortableText>["value"];
 
 type Project = {
   project: string;
@@ -19,164 +25,23 @@ type Project = {
   with: string;
 };
 
-const CURRENTLY: Project[] = [
-  {
-    project: "Basement Workshop",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Headlight",
-  },
-  {
-    project: "MáLà Project",
-    services: "Creative Direction",
-    sector: "Hospitality",
-    inPractice: "Building a framework a great brand needs",
-    with: "",
-  },
-  {
-    project: "Worthless Studios",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Caleb Bennett",
-  },
-];
+type HomeProps = {
+  studio: StudioBlocks;
+  services: string[];
+  inPractice: string[];
+  principles: string[];
+  heroImages: string[];
+  currently: Project[];
+  previously: Project[];
+};
 
-const PREVIOUSLY: Project[] = [
-  {
-    project: "Basement Workshop",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Headlight",
+// Render Studio block content as paragraphs with the same tracking as the rest
+// of the body copy.
+const studioComponents: ComponentProps<typeof PortableText>["components"] = {
+  block: {
+    normal: ({ children }) => <p className="tracking-[-.01em]">{children}</p>,
   },
-  {
-    project: "MáLà Project",
-    services: "Creative Direction",
-    sector: "Hospitality",
-    inPractice: "Building a framework a great brand needs",
-    with: "",
-  },
-  {
-    project: "Worthless Studios",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Caleb Bennett",
-  },
-  {
-    project: "Basement Workshop",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Headlight",
-  },
-  {
-    project: "MáLà Project",
-    services: "Creative Direction",
-    sector: "Hospitality",
-    inPractice: "Building a framework a great brand needs",
-    with: "",
-  },
-  {
-    project: "Worthless Studios",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Caleb Bennett",
-  },
-  {
-    project: "Basement Workshop",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Headlight",
-  },
-  {
-    project: "MáLà Project",
-    services: "Creative Direction",
-    sector: "Hospitality",
-    inPractice: "Building a framework a great brand needs",
-    with: "",
-  },
-  {
-    project: "Worthless Studios",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Caleb Bennett",
-  },
-  {
-    project: "Basement Workshop",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Headlight",
-  },
-  {
-    project: "MáLà Project",
-    services: "Creative Direction",
-    sector: "Hospitality",
-    inPractice: "Building a framework a great brand needs",
-    with: "",
-  },
-  {
-    project: "Worthless Studios",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Caleb Bennett",
-  },
-  {
-    project: "Basement Workshop",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Headlight",
-  },
-  {
-    project: "MáLà Project",
-    services: "Creative Direction",
-    sector: "Hospitality",
-    inPractice: "Building a framework a great brand needs",
-    with: "",
-  },
-  {
-    project: "Worthless Studios",
-    services: "Digital Experience",
-    sector: "Arts & Culture",
-    inPractice: "Turning years of impact into a lasting digital system",
-    with: "Caleb Bennett",
-  },
-];
-
-const SERVICES = [
-  "Brand Identity",
-  "Design Systems",
-  "Digital Experiences",
-  "Editorial Design",
-  "Exhibition Graphics",
-  "Creative Direction",
-];
-
-const IN_PRACTICE = [
-  "Bring clarity to things that don't feel quite right.",
-  "Turn a hazy idea into something to build from.",
-  "Build a scalable foundation that grows with you.",
-  "Make the shift toward a new direction.",
-  "Tell your story in ways that it can be felt.",
-  "Create something as ambitious as the vision.",
-];
-
-const PRINCIPLES = [
-  "Every decision serves the idea, nothing arbitrary.",
-  "Leading with curiosity, knowing the world the work lives in.",
-  "Rooting conceptual play in strategic intention.",
-  "Made with, not for. Fueled by trust and thinking together.",
-  "Embracing intersectional cultural humility.",
-  "Play, play again, play past the obvious.",
-];
+};
 
 function ProjectGroup({
   label,
@@ -367,7 +232,15 @@ function HoverEmail({ onCopy }: { onCopy: () => void }) {
   );
 }
 
-export default function Home() {
+export default function Home({
+  studio,
+  services,
+  inPractice,
+  principles,
+  heroImages,
+  currently,
+  previously,
+}: HomeProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [emailJustCopied, setEmailJustCopied] = useState(false);
@@ -384,12 +257,13 @@ export default function Home() {
 
   // Cycle the hero image every 1.5s, swapping instantly (no animation).
   useEffect(() => {
+    if (heroImages.length <= 1) return;
     const id = setInterval(() => {
-      setActiveIndex((i) => (i + 1) % HERO_IMAGES.length);
+      setActiveIndex((i) => (i + 1) % heroImages.length);
     }, HERO_INTERVAL_MS);
 
     return () => clearInterval(id);
-  }, []);
+  }, [heroImages.length]);
 
   const fitToViewport = useCallback(() => {
     const hero = heroRef.current;
@@ -472,13 +346,15 @@ export default function Home() {
             <p className="text-[16px] tracking-[-.01em] text-center">Copied!</p>
           ) : null}
         </div>
-        <div className="absolute bottom-0 left-0 pb-5">
-          <img
-            className="aspect-[4.5/3] bg-[red] w-[75vw] sm:w-[27vw]"
-            src={HERO_IMAGES[activeIndex]}
-            alt="Studio Present Tense"
-          ></img>
-        </div>
+        {heroImages.length > 0 ? (
+          <div className="absolute bottom-0 left-0 pb-5">
+            <img
+              className="aspect-[4.5/3] w-[75vw] sm:w-[27vw]"
+              src={heroImages[activeIndex]}
+              alt="Studio Present Tense"
+            ></img>
+          </div>
+        ) : null}
       </div>
       {/* body */}
       <div className="flex flex-col gap-[40vh] pb-5">
@@ -487,23 +363,13 @@ export default function Home() {
           <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-14">
             <p className="text-[32px] tracking-[-.02em]">Studio</p>
             <div className="text-[16px] flex flex-col gap-2">
-              <p className="tracking-[-.01em]">
-                Creating culturally resonant, systemically elastic work.  From
-                single expression to a full ecosystem, for brands,
-                 institutions, and entrepreneurs.
-              </p>
-              <p className="tracking-[-.01em]">
-                Founded by Abby Chen, a designer and creative director with 12+
-                years across studios and in-house creative teams in culture,
-                media, and tech, bringing multidisciplinary thinking to  every
-                project, at every stage.
-              </p>
+              <PortableText value={studio} components={studioComponents} />
             </div>
           </div>
           <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-14">
             <p className="text-[32px] tracking-[-.02em]">Services</p>
             <div className="text-[16px] flex flex-col">
-              {SERVICES.map((service, i) => (
+              {services.map((service, i) => (
                 <p key={i} className="tracking-[-.01em]">
                   {service}
                 </p>
@@ -513,7 +379,7 @@ export default function Home() {
           <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-14">
             <p className="text-[32px] tracking-[-.02em]">In Practice</p>
             <div className="text-[16px] flex flex-col gap-2">
-              {IN_PRACTICE.map((item, i) => (
+              {inPractice.map((item, i) => (
                 <p key={i} className="tracking-[-.01em]">
                   {item}
                 </p>
@@ -523,7 +389,7 @@ export default function Home() {
           <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-14">
             <p className="text-[32px] tracking-[-.02em]">Principles</p>
             <div className="text-[16px] flex flex-col gap-2">
-              {PRINCIPLES.map((item, i) => (
+              {principles.map((item, i) => (
                 <p key={i} className="tracking-[-.01em]">
                   {item}
                 </p>
@@ -532,10 +398,81 @@ export default function Home() {
           </div>
         </div>
         <div className="flex flex-col gap-8">
-          <ProjectGroup label="Currently" projects={CURRENTLY} />
-          <ProjectGroup label="Previously" projects={PREVIOUSLY} />
+          <ProjectGroup label="Currently" projects={currently} />
+          <ProjectGroup label="Previously" projects={previously} />
         </div>
       </div>
     </div>
   );
 }
+
+const HOME_QUERY = `{
+  "homepage": *[_type == "homepage"][0]{
+    studio,
+    "services": services[]->title,
+    inPractice,
+    principles,
+    images
+  },
+  "projects": *[_type == "project"]{
+    _id,
+    title,
+    status,
+    "services": services[]->title,
+    sector,
+    description,
+    collaborator
+  } | order(title asc)
+}`;
+
+type SanityProject = {
+  _id: string;
+  title?: string;
+  status?: "currently" | "previously";
+  services?: (string | null)[];
+  sector?: string;
+  description?: string;
+  collaborator?: string;
+};
+
+type HomeData = {
+  homepage: {
+    studio?: StudioBlocks;
+    services?: (string | null)[];
+    inPractice?: string[];
+    principles?: string[];
+    images?: Parameters<typeof urlFor>[0][];
+  } | null;
+  projects: SanityProject[];
+};
+
+export const getStaticProps: GetStaticProps<HomeProps> = async () => {
+  const data = await client.fetch<HomeData>(HOME_QUERY);
+  const homepage = data?.homepage ?? null;
+  const projects = data?.projects ?? [];
+
+  const toRow = (p: SanityProject): Project => ({
+    project: p.title ?? "",
+    services: (p.services ?? []).filter(Boolean).join(", "),
+    sector: p.sector ?? "",
+    inPractice: p.description ?? "",
+    with: p.collaborator ?? "",
+  });
+
+  return {
+    props: {
+      studio: homepage?.studio ?? [],
+      services: (homepage?.services ?? []).filter(
+        (s): s is string => Boolean(s),
+      ),
+      inPractice: homepage?.inPractice ?? [],
+      principles: homepage?.principles ?? [],
+      heroImages: (homepage?.images ?? []).map((img) =>
+        urlFor(img).width(1200).url(),
+      ),
+      currently: projects.filter((p) => p.status === "currently").map(toRow),
+      previously: projects.filter((p) => p.status === "previously").map(toRow),
+    },
+    revalidate: 60,
+  };
+};
