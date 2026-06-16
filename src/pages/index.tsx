@@ -276,10 +276,10 @@ function randomTransform(): CharTransform {
 // character displaces it and its ±2 neighbours with a random vertical offset
 // and axis flips, plus ghost copies above and below. The transform is instant.
 // Keeps `data-fit-line` so the existing width-fitting logic still scales it.
-function HoverEmail() {
+function HoverEmail({ onCopy }: { onCopy: () => void }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [transforms, setTransforms] = useState<Record<number, CharTransform>>(
-    {},
+    {}
   );
   const chars = EMAIL.split("");
 
@@ -301,21 +301,21 @@ function HoverEmail() {
     <h1
       data-fit-line
       onMouseLeave={() => setActiveIndex(null)}
+      onClick={onCopy}
       style={{
         display: "inline-block",
         whiteSpace: "nowrap",
         margin: 0,
         lineHeight: 1,
         letterSpacing: "-0.02em",
+        cursor: "pointer",
       }}
     >
       {chars.map((ch, i) => {
-        const isActive =
-          activeIndex !== null && Math.abs(i - activeIndex) <= 2;
+        const isActive = activeIndex !== null && Math.abs(i - activeIndex) <= 2;
         const t = transforms[i];
         const ghostTransform =
-          t &&
-          `translateY(${t.y * 0.6}px) scaleX(${t.sx}) scaleY(${t.sy})`;
+          t && `translateY(${t.y * 0.6}px) scaleX(${t.sx}) scaleY(${t.sy})`;
 
         return (
           <span
@@ -324,7 +324,7 @@ function HoverEmail() {
             style={{
               display: "inline-block",
               position: "relative",
-              cursor: "default",
+              cursor: "pointer",
               transform:
                 isActive && t
                   ? `translateY(${t.y}px) scaleX(${t.sx}) scaleY(${t.sy})`
@@ -370,6 +370,17 @@ function HoverEmail() {
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [emailJustCopied, setEmailJustCopied] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Copy the email and show the "Copied!" feedback for 2s (resetting the timer
+  // on repeat clicks/taps).
+  const copyEmail = useCallback(() => {
+    navigator.clipboard.writeText(EMAIL);
+    setEmailJustCopied(true);
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setEmailJustCopied(false), 2000);
+  }, []);
 
   // Cycle the hero image every 1.5s, swapping instantly (no animation).
   useEffect(() => {
@@ -432,7 +443,13 @@ export default function Home() {
       <div ref={heroRef} className="h-[calc(100vh-44px)] pt-5 relative">
         {/* mobile: one word per line, each scaled to fill the width */}
         <div className="block sm:hidden">
-          <h1 style={{ margin: 0, lineHeight: 0.9, letterSpacing: "-0.02em" }}>
+          {emailJustCopied ? (
+            <p className="text-[16px] tracking-[-.01em] text-center">Copied!</p>
+          ) : null}
+          <h1
+            onClick={copyEmail}
+            style={{ margin: 0, lineHeight: 0.9, letterSpacing: "-0.02em" }}
+          >
             {["hello@", "studio", "present", "tense", ".com"].map((line) => (
               <span
                 key={line}
@@ -450,7 +467,10 @@ export default function Home() {
         </div>
         {/* desktop: single line scaled to fill the width, with hover animation */}
         <div className="hidden sm:block">
-          <HoverEmail />
+          <HoverEmail onCopy={copyEmail} />
+          {emailJustCopied ? (
+            <p className="text-[16px] tracking-[-.01em] text-center">Copied!</p>
+          ) : null}
         </div>
         <div className="absolute bottom-0 left-0 pb-5">
           <img
