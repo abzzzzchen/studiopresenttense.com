@@ -270,7 +270,7 @@ export default function Home() {
   }, [fitToViewport]);
 
   return (
-    <div className="px-5">
+    <div className="px-5 overflow-x-hidden">
       {/* hero */}
       <div ref={heroRef} className="h-[calc(100vh-44px)] pt-5 relative">
         {/* mobile: one word per line, each scaled to fill the width */}
