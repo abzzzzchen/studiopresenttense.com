@@ -1,5 +1,19 @@
+import type { ReactNode } from "react";
+
 import { Text } from "@/components/Text";
 import type { Project } from "@/types/home";
+
+// Wrap content in an external link when an href is present, otherwise render it
+// as-is. Keeps the title/collaborator cells link-aware without duplicating the
+// anchor markup.
+function MaybeLink({ href, children }: { href?: string; children: ReactNode }) {
+  if (!href) return <>{children}</>;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  );
+}
 
 export function ProjectGroup({
   label,
@@ -22,7 +36,11 @@ export function ProjectGroup({
         {projects.map((project, i) => (
           <div key={i} className="pl-8">
             <div className="grid grid-cols-12">
-              <Text className="col-span-8">{project.project}</Text>
+              <Text className="col-span-8">
+                <MaybeLink href={project.projectLink}>
+                  {project.project}
+                </MaybeLink>
+              </Text>
             </div>
             <div className="grid grid-cols-12">
               <Text className="col-span-8">{project.services}</Text>
@@ -34,7 +52,9 @@ export function ProjectGroup({
               <Text className="col-span-8">{project.inPractice}</Text>
             </div>
             <div className="grid grid-cols-12">
-              <Text className="col-span-8">{project.with}</Text>
+              <Text className="col-span-8">
+                <MaybeLink href={project.withLink}>{project.with}</MaybeLink>
+              </Text>
             </div>
           </div>
         ))}
@@ -54,12 +74,18 @@ export function ProjectGroup({
         <div className="flex flex-col gap-[2px]">
           {projects.map((project, i) => (
             <div key={i} className="grid grid-cols-16 gap-5">
-              <Text className="col-span-2">{project.project}</Text>
+              <Text className="col-span-2">
+                <MaybeLink href={project.projectLink}>
+                  {project.project}
+                </MaybeLink>
+              </Text>
               <Text className="col-span-4">{project.services}</Text>
               <Text className="col-span-2">{project.sector}</Text>
               <Text className="col-span-6">{project.inPractice}</Text>
               <Text className="col-span-1 text-nowrap">
-                {project.with || " "}
+                <MaybeLink href={project.withLink}>
+                  {project.with || " "}
+                </MaybeLink>
               </Text>
             </div>
           ))}

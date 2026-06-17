@@ -14,6 +14,12 @@ export const projectType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'titleLink',
+      title: 'Title Link',
+      type: 'url',
+      validation: (rule) => rule.uri({scheme: ['http', 'https']}),
+    }),
+    defineField({
       name: 'status',
       title: 'Status',
       type: 'string',
@@ -47,6 +53,12 @@ export const projectType = defineType({
       name: 'collaborator',
       title: 'Collaborator',
       type: 'string',
+    }),
+    defineField({
+      name: 'collaboratorLink',
+      title: 'Collaborator Link',
+      type: 'url',
+      validation: (rule) => rule.uri({scheme: ['http', 'https']}),
     }),
   ],
   preview: {

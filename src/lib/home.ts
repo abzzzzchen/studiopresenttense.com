@@ -13,22 +13,26 @@ const HOME_QUERY = `{
   "projects": *[_type == "project"]{
     _id,
     title,
+    titleLink,
     status,
     "services": services[]->title,
     sector,
     description,
-    collaborator
+    collaborator,
+    collaboratorLink
   } | order(title asc)
 }`;
 
 type SanityProject = {
   _id: string;
   title?: string;
+  titleLink?: string;
   status?: "currently" | "previously";
   services?: (string | null)[];
   sector?: string;
   description?: string;
   collaborator?: string;
+  collaboratorLink?: string;
 };
 
 type HomeData = {
@@ -44,10 +48,12 @@ type HomeData = {
 
 const toRow = (p: SanityProject): Project => ({
   project: p.title ?? "",
+  projectLink: p.titleLink,
   services: (p.services ?? []).filter(Boolean).join(", "),
   sector: p.sector ?? "",
   inPractice: p.description ?? "",
   with: p.collaborator ?? "",
+  withLink: p.collaboratorLink,
 });
 
 export async function fetchHomeData(): Promise<HomeProps> {

@@ -5,10 +5,12 @@ export type StudioBlocks = ComponentProps<typeof PortableText>["value"];
 
 export type Project = {
   project: string;
+  projectLink?: string;
   services: string;
   sector: string;
   inPractice: string;
   with: string;
+  withLink?: string;
 };
 
 export type HomeProps = {
