@@ -4,233 +4,24 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type ComponentProps,
 } from "react";
 import type { GetStaticProps } from "next";
 import { PortableText } from "next-sanity";
 
-import { client } from "../../sanity/lib/client";
-import { urlFor } from "../../sanity/lib/image";
-
-const REFERENCE_FONT_SIZE = 100;
-const HERO_INTERVAL_MS = 1500;
-
-type StudioBlocks = ComponentProps<typeof PortableText>["value"];
-
-type Project = {
-  project: string;
-  services: string;
-  sector: string;
-  inPractice: string;
-  with: string;
-};
-
-type HomeProps = {
-  studio: StudioBlocks;
-  services: string[];
-  inPractice: string[];
-  principles: string[];
-  heroImages: string[];
-  currently: Project[];
-  previously: Project[];
-};
-
-// Render Studio block content as paragraphs with the same tracking as the rest
-// of the body copy.
-const studioComponents: ComponentProps<typeof PortableText>["components"] = {
-  block: {
-    normal: ({ children }) => <p className="tracking-[-.01em]">{children}</p>,
-  },
-};
-
-function ProjectGroup({
-  label,
-  projects,
-}: {
-  label: string;
-  projects: Project[];
-}) {
-  return (
-    <div className="text-[16px]">
-      {/* mobile: one stacked card per project */}
-      <div className="flex flex-col gap-2 sm:hidden">
-        {projects.map((project, i) => (
-          <div key={i}>
-            <div className="grid grid-cols-12">
-              <p className="col-span-4">{label}</p>
-              <p className="col-span-8">{project.project}</p>
-            </div>
-            <div className="grid grid-cols-12">
-              <p className="col-span-4">Services</p>
-              <p className="col-span-8">{project.services}</p>
-            </div>
-            <div className="grid grid-cols-12">
-              <p className="col-span-4">Sector</p>
-              <p className="col-span-8">{project.sector}</p>
-            </div>
-            <div className="grid grid-cols-12">
-              <p className="col-span-4">In Practice</p>
-              <p className="col-span-8">{project.inPractice}</p>
-            </div>
-            <div className="grid grid-cols-12">
-              <p className="col-span-4">With</p>
-              <p className="col-span-8">{project.with}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* desktop: column-major, hidden on mobile */}
-      <div className="hidden grid-cols-12 gap-5 sm:grid">
-        <div className="col-span-2">
-          <p className="mb-2">{label}</p>
-          <div className="flex flex-col gap-[2px]">
-            {projects.map((project, i) => (
-              <p key={i}>{project.project}</p>
-            ))}
-          </div>
-        </div>
-        <div className="col-span-2">
-          <p className="mb-2">Services</p>
-          <div className="flex flex-col gap-[2px]">
-            {projects.map((project, i) => (
-              <p key={i}>{project.services}</p>
-            ))}
-          </div>
-        </div>
-        <div className="col-span-2">
-          <p className="mb-2">Sector</p>
-          <div className="flex flex-col gap-[2px]">
-            {projects.map((project, i) => (
-              <p key={i}>{project.sector}</p>
-            ))}
-          </div>
-        </div>
-        <div className="col-span-4">
-          <p className="mb-2">In Practice</p>
-          <div className="flex flex-col gap-[2px]">
-            {projects.map((project, i) => (
-              <p key={i}>{project.inPractice}</p>
-            ))}
-          </div>
-        </div>
-        <div className="col-span-2">
-          <p className="mb-2">With</p>
-          {projects.map((project, i) => (
-            <p key={i}>{project.with || " "}</p>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const EMAIL = "hello@studiopresenttense.com";
-
-type CharTransform = { y: number; sx: number; sy: number };
-
-function randomTransform(): CharTransform {
-  return {
-    y: (Math.random() - 0.5) * 32,
-    sx: Math.random() > 0.5 ? -1 : 1,
-    sy: Math.random() > 0.5 ? -1 : 1,
-  };
-}
-
-// Desktop-only hover animation (ported from the Figma export): hovering a
-// character displaces it and its ±2 neighbours with a random vertical offset
-// and axis flips, plus ghost copies above and below. The transform is instant.
-// Keeps `data-fit-line` so the existing width-fitting logic still scales it.
-function HoverEmail({ onCopy }: { onCopy: () => void }) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [transforms, setTransforms] = useState<Record<number, CharTransform>>(
-    {}
-  );
-  const chars = EMAIL.split("");
-
-  const handleEnter = (i: number) => {
-    setActiveIndex(i);
-    setTransforms((prev) => {
-      const next = { ...prev };
-      for (let d = -2; d <= 2; d++) {
-        const idx = i + d;
-        if (idx >= 0 && idx < chars.length && !next[idx]) {
-          next[idx] = randomTransform();
-        }
-      }
-      return next;
-    });
-  };
-
-  return (
-    <h1
-      data-fit-line
-      onMouseLeave={() => setActiveIndex(null)}
-      onClick={onCopy}
-      style={{
-        display: "inline-block",
-        whiteSpace: "nowrap",
-        margin: 0,
-        lineHeight: 1,
-        letterSpacing: "-0.02em",
-        cursor: "pointer",
-      }}
-    >
-      {chars.map((ch, i) => {
-        const isActive = activeIndex !== null && Math.abs(i - activeIndex) <= 2;
-        const t = transforms[i];
-        const ghostTransform =
-          t && `translateY(${t.y * 0.6}px) scaleX(${t.sx}) scaleY(${t.sy})`;
-
-        return (
-          <span
-            key={i}
-            onMouseEnter={() => handleEnter(i)}
-            style={{
-              display: "inline-block",
-              position: "relative",
-              cursor: "pointer",
-              transform:
-                isActive && t
-                  ? `translateY(${t.y}px) scaleX(${t.sx}) scaleY(${t.sy})`
-                  : undefined,
-            }}
-          >
-            {ch}
-            {isActive && t && (
-              <span
-                aria-hidden
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: "-1em",
-                  transform: ghostTransform,
-                  pointerEvents: "none",
-                }}
-              >
-                {ch}
-              </span>
-            )}
-            {isActive && t && (
-              <span
-                aria-hidden
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: "1em",
-                  transform: ghostTransform,
-                  pointerEvents: "none",
-                }}
-              >
-                {ch}
-              </span>
-            )}
-          </span>
-        );
-      })}
-    </h1>
-  );
-}
+import { Text } from "@/components/Text";
+import { HoverEmail } from "@/components/home/HoverEmail";
+import { ProjectGroup } from "@/components/home/ProjectGroup";
+import { studioComponents } from "@/components/home/studioComponents";
+import {
+  EMAIL,
+  EMAIL_FILL_DESKTOP,
+  EMAIL_FILL_MOBILE,
+  HERO_INTERVAL_MS,
+  REFERENCE_FONT_SIZE,
+  SM_BREAKPOINT,
+} from "@/lib/constants";
+import { fetchHomeData } from "@/lib/home";
+import type { HomeProps } from "@/types/home";
 
 export default function Home({
   studio,
@@ -271,7 +62,13 @@ export default function Home({
 
     // The hero's content-box width already excludes the page padding (px-5)
     // and the vertical scrollbar, so lines fit exactly within the padded area.
-    const available = hero.clientWidth;
+    // Scale that target by the per-breakpoint fill ratio so the email can be
+    // tweaked to fill less than the full width.
+    const isDesktop = window.matchMedia(
+      `(min-width: ${SM_BREAKPOINT}px)`
+    ).matches;
+    const fill = isDesktop ? EMAIL_FILL_DESKTOP : EMAIL_FILL_MOBILE;
+    const available = hero.clientWidth * fill;
 
     // Measure every line's intrinsic width at the reference size. The desktop
     // version has one line; the mobile version has several (one per word). Lines
@@ -317,9 +114,6 @@ export default function Home({
       <div ref={heroRef} className="h-[calc(100vh-44px)] pt-5 relative">
         {/* mobile: one word per line, each scaled to fill the width */}
         <div className="block sm:hidden">
-          {emailJustCopied ? (
-            <p className="text-[16px] tracking-[-.01em] text-center">Copied!</p>
-          ) : null}
           <h1
             onClick={copyEmail}
             style={{ margin: 0, lineHeight: 0.9, letterSpacing: "-0.02em" }}
@@ -338,12 +132,15 @@ export default function Home({
               </span>
             ))}
           </h1>
+          {emailJustCopied ? (
+            <Text className="text-left">Email address copied.</Text>
+          ) : null}
         </div>
         {/* desktop: single line scaled to fill the width, with hover animation */}
         <div className="hidden sm:block">
           <HoverEmail onCopy={copyEmail} />
           {emailJustCopied ? (
-            <p className="text-[16px] tracking-[-.01em] text-center">Copied!</p>
+            <Text className="text-left -mt-1">Email address copied.</Text>
           ) : null}
         </div>
         {heroImages.length > 0 ? (
@@ -357,42 +154,36 @@ export default function Home({
         ) : null}
       </div>
       {/* body */}
-      <div className="flex flex-col gap-[40vh] pb-5">
+      <div className="flex flex-col gap-20 sm:gap-40 pb-5">
         {/* studio */}
         <div className=" grid grid-cols-12 gap-5">
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-14">
-            <p className="text-[32px] tracking-[-.02em]">Studio</p>
-            <div className="text-[16px] flex flex-col gap-2">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-40 sm:pr-[4vw]">
+            <Text size="bodyLarge">Studio</Text>
+            <div className="flex flex-col gap-2">
               <PortableText value={studio} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-14">
-            <p className="text-[32px] tracking-[-.02em]">Services</p>
-            <div className="text-[16px] flex flex-col">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-40 sm:pr-[4vw]">
+            <Text size="bodyLarge">Services</Text>
+            <div className="flex flex-col">
               {services.map((service, i) => (
-                <p key={i} className="tracking-[-.01em]">
-                  {service}
-                </p>
+                <Text key={i}>{service}</Text>
               ))}
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-14">
-            <p className="text-[32px] tracking-[-.02em]">In Practice</p>
-            <div className="text-[16px] flex flex-col gap-2">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-48 sm:pr-[8vw]">
+            <Text size="bodyLarge">In Practice</Text>
+            <div className="flex flex-col gap-2">
               {inPractice.map((item, i) => (
-                <p key={i} className="tracking-[-.01em]">
-                  {item}
-                </p>
+                <Text key={i}>{item}</Text>
               ))}
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-14">
-            <p className="text-[32px] tracking-[-.02em]">Principles</p>
-            <div className="text-[16px] flex flex-col gap-2">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-48 sm:pr-[8vw]">
+            <Text size="bodyLarge">Principles</Text>
+            <div className="flex flex-col gap-2">
               {principles.map((item, i) => (
-                <p key={i} className="tracking-[-.01em]">
-                  {item}
-                </p>
+                <Text key={i}>{item}</Text>
               ))}
             </div>
           </div>
@@ -406,73 +197,9 @@ export default function Home({
   );
 }
 
-const HOME_QUERY = `{
-  "homepage": *[_type == "homepage"][0]{
-    studio,
-    "services": services[]->title,
-    inPractice,
-    principles,
-    images
-  },
-  "projects": *[_type == "project"]{
-    _id,
-    title,
-    status,
-    "services": services[]->title,
-    sector,
-    description,
-    collaborator
-  } | order(title asc)
-}`;
-
-type SanityProject = {
-  _id: string;
-  title?: string;
-  status?: "currently" | "previously";
-  services?: (string | null)[];
-  sector?: string;
-  description?: string;
-  collaborator?: string;
-};
-
-type HomeData = {
-  homepage: {
-    studio?: StudioBlocks;
-    services?: (string | null)[];
-    inPractice?: string[];
-    principles?: string[];
-    images?: Parameters<typeof urlFor>[0][];
-  } | null;
-  projects: SanityProject[];
-};
-
 export const getStaticProps: GetStaticProps<HomeProps> = async () => {
-  const data = await client.fetch<HomeData>(HOME_QUERY);
-  const homepage = data?.homepage ?? null;
-  const projects = data?.projects ?? [];
-
-  const toRow = (p: SanityProject): Project => ({
-    project: p.title ?? "",
-    services: (p.services ?? []).filter(Boolean).join(", "),
-    sector: p.sector ?? "",
-    inPractice: p.description ?? "",
-    with: p.collaborator ?? "",
-  });
-
   return {
-    props: {
-      studio: homepage?.studio ?? [],
-      services: (homepage?.services ?? []).filter(
-        (s): s is string => Boolean(s),
-      ),
-      inPractice: homepage?.inPractice ?? [],
-      principles: homepage?.principles ?? [],
-      heroImages: (homepage?.images ?? []).map((img) =>
-        urlFor(img).width(1200).url(),
-      ),
-      currently: projects.filter((p) => p.status === "currently").map(toRow),
-      previously: projects.filter((p) => p.status === "previously").map(toRow),
-    },
+    props: await fetchHomeData(),
     revalidate: 60,
   };
 };
