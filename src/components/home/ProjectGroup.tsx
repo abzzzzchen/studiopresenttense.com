@@ -1,7 +1,11 @@
-import type { ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 import { Text } from "@/components/Text";
 import type { Project } from "@/types/home";
+
+// Constant linear speed (px/sec) for the hover scroll, so longer text takes
+// proportionally longer to reveal rather than whipping past.
+const SCROLL_SPEED = 80;
 
 // Wrap content in an external link when an href is present, otherwise render it
 // as-is. Keeps the title/collaborator cells link-aware without duplicating the
@@ -12,6 +16,49 @@ function MaybeLink({ href, children }: { href?: string; children: ReactNode }) {
     <a href={href} target="_blank" rel="noopener noreferrer">
       {children}
     </a>
+  );
+}
+
+// Single-line cell that clips its text and, on hover, scrolls it left at a
+// constant speed to reveal the end — then slides back when the pointer leaves.
+function ScrollOnHover({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [offset, setOffset] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const scrollToEnd = () => {
+    const el = ref.current;
+    if (!el) return;
+    // overflow = how much wider the text is than the visible cell.
+    const overflow = el.scrollWidth - el.clientWidth;
+    if (overflow <= 0) return;
+    setDuration(overflow / SCROLL_SPEED);
+    setOffset(overflow);
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={`overflow-hidden ${className ?? ""}`}
+      onMouseEnter={scrollToEnd}
+      onMouseLeave={() => setOffset(0)}
+    >
+      <Text
+        className="block whitespace-nowrap"
+        style={{
+          transform: `translateX(-${offset}px)`,
+          transition: `transform ${duration}s linear`,
+        }}
+      >
+        {children}
+      </Text>
+    </div>
   );
 }
 
@@ -64,8 +111,8 @@ export function ProjectGroup({
       <div className="hidden flex-col sm:flex">
         {/* header row */}
         <div className="grid grid-cols-16 gap-5 mb-2">
-          <Text className="col-span-2">{label}</Text>
-          <Text className="col-span-4">Services</Text>
+          <Text className="col-span-3">{label}</Text>
+          <Text className="col-span-3">Services</Text>
           <Text className="col-span-2">Sector</Text>
           <Text className="col-span-6">In Practice</Text>
           <Text className="col-span-1">With</Text>
@@ -74,14 +121,16 @@ export function ProjectGroup({
         <div className="flex flex-col gap-[2px]">
           {projects.map((project, i) => (
             <div key={i} className="grid grid-cols-16 gap-5">
-              <Text className="col-span-2">
+              <Text className="col-span-3">
                 <MaybeLink href={project.projectLink}>
                   {project.project}
                 </MaybeLink>
               </Text>
-              <Text className="col-span-4">{project.services}</Text>
+              <Text className="col-span-3">{project.services}</Text>
               <Text className="col-span-2">{project.sector}</Text>
-              <Text className="col-span-6">{project.inPractice}</Text>
+              <ScrollOnHover className="col-span-6">
+                {project.inPractice}
+              </ScrollOnHover>
               <Text className="col-span-1 text-nowrap">
                 <MaybeLink href={project.withLink}>
                   {project.with || " "}
