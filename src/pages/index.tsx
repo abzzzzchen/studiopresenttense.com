@@ -171,7 +171,7 @@ export default function Home({
               ))}
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-48 sm:pr-[8vw]">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-40 sm:pr-[8vw]">
             <Text size="bodyLarge">In Practice</Text>
             <div className="flex flex-col gap-2">
               <PortableText value={inPractice} components={studioComponents} />
