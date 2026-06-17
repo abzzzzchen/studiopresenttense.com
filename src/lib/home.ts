@@ -39,8 +39,8 @@ type HomeData = {
   homepage: {
     studio?: StudioBlocks;
     services?: (string | null)[];
-    inPractice?: string[];
-    principles?: string[];
+    inPractice?: StudioBlocks;
+    principles?: StudioBlocks;
     images?: Parameters<typeof urlFor>[0][];
   } | null;
   projects: SanityProject[];

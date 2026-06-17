@@ -21,14 +21,12 @@ export const homepageType = defineType({
     defineField({
       name: 'inPractice',
       title: 'In Practice',
-      type: 'array',
-      of: [defineArrayMember({type: 'string'})],
+      type: 'blockContent',
     }),
     defineField({
       name: 'principles',
       title: 'Principles',
-      type: 'array',
-      of: [defineArrayMember({type: 'string'})],
+      type: 'blockContent',
     }),
     defineField({
       name: 'images',

@@ -16,8 +16,8 @@ export type Project = {
 export type HomeProps = {
   studio: StudioBlocks;
   services: string[];
-  inPractice: string[];
-  principles: string[];
+  inPractice: StudioBlocks;
+  principles: StudioBlocks;
   heroImages: string[];
   currently: Project[];
   previously: Project[];

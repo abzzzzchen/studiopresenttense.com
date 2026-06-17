@@ -174,17 +174,13 @@ export default function Home({
           <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-48 sm:pr-[8vw]">
             <Text size="bodyLarge">In Practice</Text>
             <div className="flex flex-col gap-2">
-              {inPractice.map((item, i) => (
-                <Text key={i}>{item}</Text>
-              ))}
+              <PortableText value={inPractice} components={studioComponents} />
             </div>
           </div>
           <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-48 sm:pr-[8vw]">
             <Text size="bodyLarge">Principles</Text>
             <div className="flex flex-col gap-2">
-              {principles.map((item, i) => (
-                <Text key={i}>{item}</Text>
-              ))}
+              <PortableText value={principles} components={studioComponents} />
             </div>
           </div>
         </div>
