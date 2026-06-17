@@ -1,17 +1,11 @@
-import {
-  Fragment,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Text } from "@/components/Text";
 import type { Project } from "@/types/home";
 
-// Constant linear speed (px/sec) for the hover scroll, so longer text takes
-// proportionally longer to reveal rather than whipping past.
-const SCROLL_SPEED = 80;
+// Per-character cadence (ms) of the hover ticker — constant speed in letters
+// per second, so every cell scrolls at the same reading pace.
+const CHAR_STEP_MS = 45;
 
 // Mirror a letter on either the x or the y axis (one or the other, at random) —
 // no scaling on the unused axis, so the letter only flips, never resizes.
@@ -79,8 +73,11 @@ function MaybeLink({ href, children }: { href?: string; children: ReactNode }) {
   );
 }
 
-// Single-line cell that clips its text and, on hover, scrolls it left at a
-// constant speed to reveal the end — then slides back when the pointer leaves.
+// Single-line cell that truncates with a real CSS ellipsis. On hover it tickers
+// the text one character at a time — dropping a whole letter off the front each
+// step so the tail scrolls into view, with the ellipsis appended at the right —
+// until the remaining tail fits and the true end shows in full. Rewinds to the
+// start when the pointer leaves.
 function ScrollOnHover({
   children,
   className,
@@ -88,88 +85,34 @@ function ScrollOnHover({
   children: ReactNode;
   className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [offset, setOffset] = useState(0);
-  const [duration, setDuration] = useState(0);
-  // How much wider the text is than the cell, and whether the "…" is showing.
-  const [overflow, setOverflow] = useState(0);
-  // Trailing "…" at rest (more text to the right); leading "…" once scrolled to
-  // the end (more text to the left).
-  const [showEllipsis, setShowEllipsis] = useState(false);
-  const [showStartEllipsis, setShowStartEllipsis] = useState(false);
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [start, setStart] = useState(0);
+  const [active, setActive] = useState(false);
+  const text = typeof children === "string" ? children : "";
 
-  // Measure the overflow up front (and on resize / font load, since the type is
-  // viewport-relative) so the ellipsis can show before any hover.
-  useLayoutEffect(() => {
-    const measure = () => {
-      const el = ref.current;
-      if (!el) return;
-      const o = el.scrollWidth - el.clientWidth;
-      setOverflow(o);
-      // Only toggle at rest — never while a scroll is in progress.
-      setOffset((cur) => {
-        if (cur === 0) setShowEllipsis(o > 0);
-        return cur;
-      });
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    document.fonts?.ready.then(measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-
-  const scrollToEnd = () => {
-    if (overflow <= 0) return;
-    setShowEllipsis(false); // hide the trailing "…" the moment scrolling begins
-    setDuration(overflow / SCROLL_SPEED);
-    setOffset(overflow);
-  };
-
-  const scrollToStart = () => {
-    setShowStartEllipsis(false); // hide the leading "…" as it scrolls back
-    setOffset(0);
-  };
-
-  // When an animation finishes: at the start, show the trailing "…"; at the
-  // end, show the leading "…".
-  const handleTransitionEnd = () => {
-    if (overflow <= 0) return;
-    if (offset === 0) setShowEllipsis(true);
-    else setShowStartEllipsis(true);
-  };
+  useEffect(() => {
+    // Rewind a character at a time once the pointer has left.
+    if (!active) {
+      if (start === 0) return;
+      const id = setTimeout(() => setStart((s) => s - 1), CHAR_STEP_MS);
+      return () => clearTimeout(id);
+    }
+    // Advance until the remaining tail fits the cell (the end is fully shown).
+    const el = ref.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    const id = setTimeout(() => setStart((s) => s + 1), CHAR_STEP_MS);
+    return () => clearTimeout(id);
+  }, [active, start]);
 
   return (
-    <div
+    <Text
       ref={ref}
-      className={`relative overflow-hidden cursor-default ${className ?? ""}`}
-      onMouseEnter={scrollToEnd}
-      onMouseLeave={scrollToStart}
+      className={`block overflow-hidden whitespace-nowrap text-ellipsis cursor-default ${className ?? ""}`}
+      onMouseEnter={() => setActive(true)}
+      onMouseLeave={() => setActive(false)}
     >
-      <Text
-        className="block whitespace-nowrap"
-        style={{
-          transform: `translateX(-${offset}px)`,
-          transition: `transform ${duration}s linear`,
-        }}
-        onTransitionEnd={handleTransitionEnd}
-      >
-        {children}
-      </Text>
-      <Text
-        aria-hidden
-        className="absolute right-0 top-0 bg-background pl-1 pointer-events-none transition-opacity duration-150"
-        style={{ opacity: showEllipsis ? 1 : 0 }}
-      >
-        …
-      </Text>
-      <Text
-        aria-hidden
-        className="absolute left-0 top-0 bg-background pr-1 pointer-events-none transition-opacity duration-150"
-        style={{ opacity: showStartEllipsis ? 1 : 0 }}
-      >
-        …
-      </Text>
-    </div>
+      {text.slice(start)}
+    </Text>
   );
 }
 
@@ -219,9 +162,9 @@ export function ProjectGroup({
       </div>
 
       {/* desktop: row-major, hidden on mobile */}
-      <div className="hidden flex-col sm:flex">
+      <div className="hidden flex-col sm:flex gap-[1.3228vw]">
         {/* header row */}
-        <div className="grid grid-cols-16 gap-5 mb-2">
+        <div className="grid grid-cols-16 gap-5">
           <Text className="col-span-3">{label}</Text>
           <Text className="col-span-3">Services</Text>
           <Text className="col-span-2">Sector</Text>

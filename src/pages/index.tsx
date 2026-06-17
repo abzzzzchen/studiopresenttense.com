@@ -78,7 +78,7 @@ export default function Home({
     const hero = heroRef.current;
     if (!hero) return;
 
-    // The hero's content-box width already excludes the page padding (px-5)
+    // The hero's content-box width already excludes the page padding (px-[1.3228vw])
     // and the vertical scrollbar, so lines fit exactly within the padded area.
     // Scale that target by the per-breakpoint fill ratio so the email can be
     // tweaked to fill less than the full width.
@@ -127,9 +127,12 @@ export default function Home({
   }, [fitToViewport]);
 
   return (
-    <div className="px-5 overflow-x-hidden">
+    <div className="px-[1.3228vw] overflow-x-hidden">
       {/* hero */}
-      <div ref={heroRef} className="h-[calc(100vh-44px)] pt-5 relative">
+      <div
+        ref={heroRef}
+        className="h-[calc(100vh-44px)] pt-[1.3228vw] relative"
+      >
         {/* mobile: one word per line, each scaled to fill the width */}
         <div className="block sm:hidden">
           <h1
@@ -162,7 +165,7 @@ export default function Home({
           ) : null}
         </div>
         {heroImages.length > 0 && !lightboxOpen ? (
-          <div className="absolute bottom-0 left-0 pb-5">
+          <div className="absolute bottom-0 left-0 pb-[1.3228vw]">
             <motion.img
               layoutId="hero-image"
               transition={{ type: "spring", bounce: 0, duration: 0.5 }}
@@ -175,14 +178,14 @@ export default function Home({
         ) : null}
       </div>
       {/* body */}
-      <div className="flex flex-col gap-20 sm:gap-40 pb-5">
+      <div className="flex flex-col gap-20 sm:gap-40 pb-[1.3228vw]">
         {/* studio */}
-        <div className=" grid grid-cols-12 gap-5">
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-[4vw]">
+        <div className=" grid grid-cols-12 gap-[1.3228vw]">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[1.3228vw] pr-[1.3228vw]">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
-              className="cursor-pointer scroll-mt-5"
+              className="cursor-pointer scroll-mt-[1.3228vw]"
             >
               Studio
             </Text>
@@ -190,11 +193,11 @@ export default function Home({
               <PortableText value={studio} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-[4vw]">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[1.3228vw] pr-[1.3228vw]">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
-              className="cursor-pointer scroll-mt-5"
+              className="cursor-pointer scroll-mt-[1.3228vw]"
             >
               Services
             </Text>
@@ -204,11 +207,11 @@ export default function Home({
               ))}
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-[4vw]">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[1.3228vw] pr-[1.3228vw]">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
-              className="cursor-pointer scroll-mt-5"
+              className="cursor-pointer scroll-mt-[1.3228vw]"
             >
               In Practice
             </Text>
@@ -216,11 +219,11 @@ export default function Home({
               <PortableText value={inPractice} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 sm:pr-[4vw]">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[1.3228vw] pr-[1.3228vw]">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
-              className="cursor-pointer scroll-mt-5"
+              className="cursor-pointer scroll-mt-[1.3228vw]"
             >
               Principles
             </Text>
@@ -239,7 +242,7 @@ export default function Home({
         <motion.img
           layoutId="hero-image"
           transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-          className="fixed inset-0 z-50 m-auto aspect-[4.5/3] w-[min(90vw,135vh)] cursor-pointer"
+          className="fixed inset-0 z-[1.3228vw]0 m-auto aspect-[4.5/3] w-[min(90vw,135vh)] cursor-pointer"
           src={heroImages[activeIndex]}
           alt="Studio Present Tense"
           onClick={() => setLightboxOpen(false)}
