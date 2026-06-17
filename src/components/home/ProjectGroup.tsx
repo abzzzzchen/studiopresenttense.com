@@ -43,22 +43,24 @@ export function ProjectGroup({
       {/* desktop: row-major, hidden on mobile */}
       <div className="hidden flex-col sm:flex">
         {/* header row */}
-        <div className="grid grid-cols-12 gap-2 mb-2">
+        <div className="grid grid-cols-16 gap-5 mb-2">
           <Text className="col-span-2">{label}</Text>
-          <Text className="col-span-2">Services</Text>
+          <Text className="col-span-4">Services</Text>
           <Text className="col-span-2">Sector</Text>
-          <Text className="col-span-4">In Practice</Text>
-          <Text className="col-span-2">With</Text>
+          <Text className="col-span-6">In Practice</Text>
+          <Text className="col-span-1">With</Text>
         </div>
         {/* one grid row per project */}
         <div className="flex flex-col gap-[2px]">
           {projects.map((project, i) => (
-            <div key={i} className="grid grid-cols-12 gap-2">
+            <div key={i} className="grid grid-cols-16 gap-5">
               <Text className="col-span-2">{project.project}</Text>
-              <Text className="col-span-2">{project.services}</Text>
+              <Text className="col-span-4">{project.services}</Text>
               <Text className="col-span-2">{project.sector}</Text>
-              <Text className="col-span-4">{project.inPractice}</Text>
-              <Text className="col-span-2">{project.with || " "}</Text>
+              <Text className="col-span-6">{project.inPractice}</Text>
+              <Text className="col-span-1 text-nowrap">
+                {project.with || " "}
+              </Text>
             </div>
           ))}
         </div>
