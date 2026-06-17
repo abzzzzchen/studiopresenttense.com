@@ -6,15 +6,16 @@ import type { ComponentProps } from "react";
 //
 // Sizes are expressed in vw so type relationships scale with the viewport. The
 // base value is the mobile reference (402px viewport); the `sm:` value is the
-// desktop reference (1512px viewport). At 1920px and above the size locks to a
-// fixed px so the type stops growing:
-//   bodyLarge   mobile 44px / 402  = 10.9453vw   desktop 40px / 1512 = 2.6455vw   cap 50px @ ≥1920
-//   bodyRegular mobile 20px / 402  =  4.9751vw   desktop 20px / 1512 = 1.3228vw   cap 25px @ ≥1920
+// desktop reference (1512px viewport), capped via min() so the type locks at a
+// fixed px on large screens (50px / 25px, the size at the 1920px reference) and
+// stops growing beyond it:
+//   bodyLarge   mobile 44px / 402  = 10.9453vw   desktop 40px / 1512 = 2.6455vw   cap 50px
+//   bodyRegular mobile 20px / 402  =  4.9751vw   desktop 20px / 1512 = 1.3228vw   cap 25px
 const SIZE_STYLES = {
   bodyLarge:
-    "text-[10.9453vw] sm:text-[2.6455vw] min-[1920px]:text-[50px] tracking-[-.02em] leading-[0.92]",
+    "text-[10.9453vw] sm:text-[min(2.6455vw,50px)] tracking-[-.02em] leading-[0.92]",
   bodyRegular:
-    "text-[4.9751vw] sm:text-[1.3228vw] min-[1920px]:text-[25px] tracking-[-.01em] leading-[0.92]",
+    "text-[4.9751vw] sm:text-[min(1.3228vw,25px)] tracking-[-.01em] leading-[0.92]",
 } as const;
 
 export type TextSize = keyof typeof SIZE_STYLES;
