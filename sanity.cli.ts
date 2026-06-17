@@ -10,6 +10,8 @@ const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION
 
 export default defineCliConfig({
   api: { projectId, dataset },
+  // Hostname for `sanity deploy` -> https://studiopresenttense.sanity.studio
+  studioHost: 'studiopresenttense',
   // The Studio bundle reads NEXT_PUBLIC_* env vars (see sanity/env.ts), but the
   // Sanity CLI only inlines SANITY_STUDIO_* into the browser bundle by default.
   // Expose them explicitly so `sanity dev`/`build`/`deploy` work standalone too.
