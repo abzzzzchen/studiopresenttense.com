@@ -1,4 +1,10 @@
-import { useRef, useState, type ReactNode } from "react";
+import {
+  Fragment,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { Text } from "@/components/Text";
 import type { Project } from "@/types/home";
@@ -7,14 +13,68 @@ import type { Project } from "@/types/home";
 // proportionally longer to reveal rather than whipping past.
 const SCROLL_SPEED = 80;
 
-// Wrap content in an external link when an href is present, otherwise render it
-// as-is. Keeps the title/collaborator cells link-aware without duplicating the
-// anchor markup.
+// Mirror a letter on either the x or the y axis (one or the other, at random) —
+// no scaling on the unused axis, so the letter only flips, never resizes.
+type LetterMirror = { sx: number; sy: number };
+function randomMirror(): LetterMirror {
+  return Math.random() < 0.5 ? { sx: -1, sy: 1 } : { sx: 1, sy: -1 };
+}
+
+// When an href is present, render the word as a link whose letters each
+// randomly mirror (x or y) while hovered. Without a link, render plain text and
+// no hover effect. Letters are split per word so wrapping still happens between
+// words, not mid-word.
 function MaybeLink({ href, children }: { href?: string; children: ReactNode }) {
+  const text = typeof children === "string" ? children : "";
+  const [mirrors, setMirrors] = useState<LetterMirror[]>([]);
+
   if (!href) return <>{children}</>;
+
+  // One fresh mirror per non-space letter on enter; clear on leave.
+  const handleEnter = () =>
+    setMirrors(
+      text
+        .replace(/ /g, "")
+        .split("")
+        .map(() => randomMirror())
+    );
+  const handleLeave = () => setMirrors([]);
+
+  let letterIndex = 0;
+  const words = text.split(" ");
+
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      {children}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="cursor-pointer"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
+      {words.map((word, wi) => (
+        <Fragment key={wi}>
+          <span style={{ display: "inline-block" }}>
+            {word.split("").map((ch, ci) => {
+              const m = mirrors[letterIndex++];
+              return (
+                <span
+                  key={ci}
+                  style={{
+                    display: "inline-block",
+                    transform: m
+                      ? `scaleX(${m.sx}) scaleY(${m.sy})`
+                      : undefined,
+                  }}
+                >
+                  {ch}
+                </span>
+              );
+            })}
+          </span>
+          {wi < words.length - 1 ? " " : null}
+        </Fragment>
+      ))}
     </a>
   );
 }
@@ -31,23 +91,59 @@ function ScrollOnHover({
   const ref = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
   const [duration, setDuration] = useState(0);
+  // How much wider the text is than the cell, and whether the "…" is showing.
+  const [overflow, setOverflow] = useState(0);
+  // Trailing "…" at rest (more text to the right); leading "…" once scrolled to
+  // the end (more text to the left).
+  const [showEllipsis, setShowEllipsis] = useState(false);
+  const [showStartEllipsis, setShowStartEllipsis] = useState(false);
+
+  // Measure the overflow up front (and on resize / font load, since the type is
+  // viewport-relative) so the ellipsis can show before any hover.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = ref.current;
+      if (!el) return;
+      const o = el.scrollWidth - el.clientWidth;
+      setOverflow(o);
+      // Only toggle at rest — never while a scroll is in progress.
+      setOffset((cur) => {
+        if (cur === 0) setShowEllipsis(o > 0);
+        return cur;
+      });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    document.fonts?.ready.then(measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   const scrollToEnd = () => {
-    const el = ref.current;
-    if (!el) return;
-    // overflow = how much wider the text is than the visible cell.
-    const overflow = el.scrollWidth - el.clientWidth;
     if (overflow <= 0) return;
+    setShowEllipsis(false); // hide the trailing "…" the moment scrolling begins
     setDuration(overflow / SCROLL_SPEED);
     setOffset(overflow);
+  };
+
+  const scrollToStart = () => {
+    setShowStartEllipsis(false); // hide the leading "…" as it scrolls back
+    setOffset(0);
+  };
+
+  // When an animation finishes: at the start, show the trailing "…"; at the
+  // end, show the leading "…".
+  const handleTransitionEnd = () => {
+    if (overflow <= 0) return;
+    if (offset === 0) setShowEllipsis(true);
+    else setShowStartEllipsis(true);
   };
 
   return (
     <div
       ref={ref}
-      className={`overflow-hidden ${className ?? ""}`}
+      className={`relative overflow-hidden cursor-default ${className ?? ""}`}
       onMouseEnter={scrollToEnd}
-      onMouseLeave={() => setOffset(0)}
+      onMouseLeave={scrollToStart}
     >
       <Text
         className="block whitespace-nowrap"
@@ -55,8 +151,23 @@ function ScrollOnHover({
           transform: `translateX(-${offset}px)`,
           transition: `transform ${duration}s linear`,
         }}
+        onTransitionEnd={handleTransitionEnd}
       >
         {children}
+      </Text>
+      <Text
+        aria-hidden
+        className="absolute right-0 top-0 bg-background pl-1 pointer-events-none transition-opacity duration-150"
+        style={{ opacity: showEllipsis ? 1 : 0 }}
+      >
+        …
+      </Text>
+      <Text
+        aria-hidden
+        className="absolute left-0 top-0 bg-background pr-1 pointer-events-none transition-opacity duration-150"
+        style={{ opacity: showStartEllipsis ? 1 : 0 }}
+      >
+        …
       </Text>
     </div>
   );

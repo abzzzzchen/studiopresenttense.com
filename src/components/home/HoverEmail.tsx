@@ -12,9 +12,10 @@ function randomTransform(): CharTransform {
   };
 }
 
-// Desktop-only hover animation (ported from the Figma export): hovering a
-// character displaces it and its ±2 neighbours with a random vertical offset
-// and axis flips, plus ghost copies above and below. The transform is instant.
+// Desktop-only hover animation (ported from the Figma export): the email line
+// itself stays put, while hovering a character spawns two mirrored ghost copies
+// of it and its ±2 neighbours stacked below the line (random axis flips + a
+// dampened vertical offset). The transform is instant.
 // Keeps `data-fit-line` so the existing width-fitting logic still scales it.
 export function HoverEmail({ onCopy }: { onCopy: () => void }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -46,7 +47,7 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
         display: "inline-block",
         whiteSpace: "nowrap",
         margin: 0,
-        lineHeight: 1,
+        lineHeight: 0.9,
         letterSpacing: "-0.02em",
         cursor: "pointer",
       }}
@@ -65,10 +66,6 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
               display: "inline-block",
               position: "relative",
               cursor: "pointer",
-              transform:
-                isActive && t
-                  ? `translateY(${t.y}px) scaleX(${t.sx}) scaleY(${t.sy})`
-                  : undefined,
             }}
           >
             {ch}
@@ -78,7 +75,7 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
                 style={{
                   position: "absolute",
                   left: 0,
-                  top: "-1em",
+                  top: "0.9em",
                   transform: ghostTransform,
                   pointerEvents: "none",
                 }}
@@ -92,7 +89,7 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
                 style={{
                   position: "absolute",
                   left: 0,
-                  top: "1em",
+                  top: "1.8em",
                   transform: ghostTransform,
                   pointerEvents: "none",
                 }}

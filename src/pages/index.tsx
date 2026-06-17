@@ -4,8 +4,10 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type MouseEvent,
 } from "react";
 import type { GetStaticProps } from "next";
+import { motion } from "motion/react";
 import { PortableText } from "next-sanity";
 
 import { Text } from "@/components/Text";
@@ -35,6 +37,7 @@ export default function Home({
   const heroRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [emailJustCopied, setEmailJustCopied] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Copy the email and show the "Copied!" feedback for 2s (resetting the timer
@@ -45,6 +48,21 @@ export default function Home({
     if (copiedTimer.current) clearTimeout(copiedTimer.current);
     copiedTimer.current = setTimeout(() => setEmailJustCopied(false), 2000);
   }, []);
+
+  // Scroll the clicked section title to the top-left of the viewport.
+  const scrollToTop = useCallback((e: MouseEvent<HTMLElement>) => {
+    e.currentTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  // Close the lightbox on Escape while it's open.
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxOpen]);
 
   // Cycle the hero image every 1.5s, swapping instantly (no animation).
   useEffect(() => {
@@ -143,13 +161,16 @@ export default function Home({
             <Text className="text-left -mt-1">Email address copied.</Text>
           ) : null}
         </div>
-        {heroImages.length > 0 ? (
+        {heroImages.length > 0 && !lightboxOpen ? (
           <div className="absolute bottom-0 left-0 pb-5">
-            <img
-              className="aspect-[4.5/3] w-[75vw] sm:w-[27vw]"
+            <motion.img
+              layoutId="hero-image"
+              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+              className="aspect-[4.5/3] w-[75vw] sm:w-[27vw] cursor-pointer"
               src={heroImages[activeIndex]}
               alt="Studio Present Tense"
-            ></img>
+              onClick={() => setLightboxOpen(true)}
+            />
           </div>
         ) : null}
       </div>
@@ -157,28 +178,52 @@ export default function Home({
       <div className="flex flex-col gap-20 sm:gap-40 pb-5">
         {/* studio */}
         <div className=" grid grid-cols-12 gap-5">
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-40 sm:pr-[4vw]">
-            <Text size="bodyLarge">Studio</Text>
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-[4vw]">
+            <Text
+              size="bodyLarge"
+              onClick={scrollToTop}
+              className="cursor-pointer scroll-mt-5"
+            >
+              Studio
+            </Text>
             <div className="flex flex-col gap-2">
               <PortableText value={studio} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-40 sm:pr-[4vw]">
-            <Text size="bodyLarge">Services</Text>
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-[4vw]">
+            <Text
+              size="bodyLarge"
+              onClick={scrollToTop}
+              className="cursor-pointer scroll-mt-5"
+            >
+              Services
+            </Text>
             <div className="flex flex-col">
               {services.map((service, i) => (
                 <Text key={i}>{service}</Text>
               ))}
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-40 sm:pr-[8vw]">
-            <Text size="bodyLarge">In Practice</Text>
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-[4vw]">
+            <Text
+              size="bodyLarge"
+              onClick={scrollToTop}
+              className="cursor-pointer scroll-mt-5"
+            >
+              In Practice
+            </Text>
             <div className="flex flex-col gap-2">
               <PortableText value={inPractice} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 pr-48 sm:pr-[8vw]">
-            <Text size="bodyLarge">Principles</Text>
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-5 sm:pr-[4vw]">
+            <Text
+              size="bodyLarge"
+              onClick={scrollToTop}
+              className="cursor-pointer scroll-mt-5"
+            >
+              Principles
+            </Text>
             <div className="flex flex-col gap-2">
               <PortableText value={principles} components={studioComponents} />
             </div>
@@ -189,6 +234,17 @@ export default function Home({
           <ProjectGroup label="Previously" projects={previously} />
         </div>
       </div>
+      {/* lightbox: the hero image morphs to the centre of the viewport */}
+      {heroImages.length > 0 && lightboxOpen ? (
+        <motion.img
+          layoutId="hero-image"
+          transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+          className="fixed inset-0 z-50 m-auto aspect-[4.5/3] w-[min(90vw,135vh)] cursor-pointer"
+          src={heroImages[activeIndex]}
+          alt="Studio Present Tense"
+          onClick={() => setLightboxOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }
