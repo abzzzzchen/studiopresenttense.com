@@ -8,7 +8,7 @@ export const HERO_INTERVAL_MS = 1500;
 
 // Fraction of the hero's available width the email scales to fill. Tweak to
 // taste: 1 fills the full padded width, lower values leave room on the right.
-export const EMAIL_FILL_MOBILE = 0.75;
+export const EMAIL_FILL_MOBILE = 1;
 export const EMAIL_FILL_DESKTOP = 1;
 
 // Tailwind `sm` breakpoint (px, see globals.css); at/above it the desktop email

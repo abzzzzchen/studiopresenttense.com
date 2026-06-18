@@ -128,11 +128,14 @@ export default function Home({
   }, [fitToViewport]);
 
   return (
-    <div className="px-5 overflow-x-hidden">
+    <div className="px-3 md:px-5 overflow-x-hidden">
       {/* hero */}
-      <div ref={heroRef} className="h-[calc(100vh-44px)] pt-5 relative">
+      <div
+        ref={heroRef}
+        className="h-[25vh] md:h-[calc(100vh-44px)] pt-3 md:pt-5 relative"
+      >
         {/* mobile: one word per line, at bodyLarge size (no dynamic scaling) */}
-        <div className="block md:hidden">
+        {/* <div className="block md:hidden">
           <h1
             onClick={copyEmail}
             className={`m-0 cursor-pointer ${SIZE_STYLES.bodyLarge}`}
@@ -149,20 +152,23 @@ export default function Home({
           {emailJustCopied ? (
             <Text className="text-left">Email address copied.</Text>
           ) : null}
-        </div>
+        </div> */}
         {/* desktop: single line scaled to fill the width, with hover animation */}
-        <div className="hidden md:block">
+        <div>
           <HoverEmail onCopy={copyEmail} />
           {emailJustCopied ? (
             <Text className="text-left">Email address copied.</Text>
           ) : null}
         </div>
+        {/* hero image — portrait thumbnail on mobile, landscape on desktop.
+            A single element keeps exactly one `hero-image` layoutId mounted so
+            the morph to/from the lightbox stays clean (no flash). */}
         {heroImages.length > 0 && !lightboxOpen ? (
-          <div className="absolute bottom-0 left-0 pb-5">
+          <div className="fixed md:absolute bottom-0 left-0 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] md:p-0 md:pb-5">
             <motion.img
               layoutId="hero-image"
               transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-              className="aspect-[4.5/3] w-[75vw] md:w-[27vw] cursor-pointer"
+              className="aspect-[3/4.5] w-[calc(33.33vw-12px)] md:aspect-[4.5/3] md:w-[27vw] object-cover cursor-pointer"
               src={heroImages[activeIndex]}
               alt="Studio Present Tense"
               onClick={() => setLightboxOpen(true)}
@@ -173,8 +179,8 @@ export default function Home({
       {/* body */}
       <div className="flex flex-col gap-20 md:gap-40 pb-5">
         {/* studio */}
-        <div className=" grid grid-cols-12 gap-10 md:gap-5">
-          <div className="col-span-12 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
+        <div className=" grid grid-cols-9 md:grid-cols-12 gap-x-3 gap-y-10 md:gap-5">
+          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-0 md:pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -186,7 +192,7 @@ export default function Home({
               <PortableText value={studio} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
+          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-0 md:pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -200,7 +206,7 @@ export default function Home({
               ))}
             </div>
           </div>
-          <div className="col-span-12 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
+          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-0 md:pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -212,7 +218,7 @@ export default function Home({
               <PortableText value={inPractice} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
+          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-0 md:pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -229,17 +235,19 @@ export default function Home({
           <ProjectGroup label="Currently" projects={currently} />
           <ProjectGroup label="Previously" projects={previously} />
         </div>
-        <div>
-          <Text size="bodyRegular">
-            Magically built by{" "}
-            <a
-              href="https://headlight.la"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FlipText>Headlight</FlipText>
-            </a>
-          </Text>
+        <div className="grid grid-cols-9 md:grid-cols-12 gap-x-3 mt-20 md:mt-0">
+          <div className="col-start-4 col-span-6 md:col-span-12">
+            <Text size="bodyRegular">
+              Magically built by{" "}
+              <a
+                href="https://headlight.la"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FlipText>Headlight</FlipText>
+              </a>
+            </Text>
+          </div>
         </div>
       </div>
       {/* lightbox: the hero image morphs to the centre of the viewport */}
@@ -253,7 +261,7 @@ export default function Home({
           <motion.img
             layoutId="hero-image"
             transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-            className="fixed inset-0 z-50 m-auto aspect-[4.5/3] w-[min(90vw,135vh)] cursor-pointer"
+            className="fixed inset-0 z-50 m-auto aspect-[3/4.5] w-[min(90vw,60vh)] md:aspect-[4.5/3] md:w-[min(90vw,135vh)] object-cover cursor-pointer"
             src={heroImages[activeIndex]}
             alt="Studio Present Tense"
             onClick={() => setLightboxOpen(false)}

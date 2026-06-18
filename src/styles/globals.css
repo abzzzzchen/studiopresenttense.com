@@ -14,28 +14,28 @@
   --background: #fafef1;
   --foreground: #8f8f8f;
 
-  /* One line of body text: 0.92 (bodyRegular leading) × the bodyRegular size at
+  /* One line of body text: 0.94 (bodyRegular leading) × the bodyRegular size at
      each breakpoint. Keep these in sync with the type ramp in Text.tsx. */
-  --body-leading: 14.72px; /* 16 × 0.92 */
+  --body-leading: 15.04px; /* 16 × 0.94 */
 }
 @media (min-width: 641px) {
   :root {
-    --body-leading: 16.56px; /* 18 × 0.92 */
+    --body-leading: 16.92px; /* 18 × 0.94 */
   }
 }
 @media (min-width: 881px) {
   :root {
-    --body-leading: 12.88px; /* 14 × 0.92 */
+    --body-leading: 13.16px; /* 14 × 0.94 */
   }
 }
 @media (min-width: 1201px) {
   :root {
-    --body-leading: 14.72px; /* 16 × 0.92 */
+    --body-leading: 15.04px; /* 16 × 0.94 */
   }
 }
 @media (min-width: 1728px) {
   :root {
-    --body-leading: 18.4px; /* 20 × 0.92 */
+    --body-leading: 18.8px; /* 20 × 0.94 */
   }
 }
 

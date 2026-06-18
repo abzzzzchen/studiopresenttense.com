@@ -77,34 +77,26 @@ export function ProjectGroup({
   return (
     <div>
       {/* mobile: one stacked card per project */}
-      <div className="flex flex-col gap-2 md:hidden">
-        <div>
+      <div className="gap-x-3 gap-y-2 grid grid-cols-9 md:hidden">
+        <div className="col-start-4 col-span-6">
           <Text>{label}</Text>
-          <Text>Services</Text>
-          <Text>Sector</Text>
-          <Text>In Practice</Text>
-          <Text>With</Text>
         </div>
         {projects.map((project, i) => (
-          <div key={i} className="pl-8">
-            <div className="grid grid-cols-12">
-              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
+          <div key={i} className="col-span-9">
+            <div className="grid grid-cols-9 gap-3">
+              <Text className="col-span-3">
                 <MaybeLink href={project.projectLink}>
                   {project.project}
                 </MaybeLink>
               </Text>
-              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
-                {project.services}
-              </Text>
-              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
-                {project.sector}
-              </Text>
-              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
-                {project.inPractice}
-              </Text>
-              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
-                <MaybeLink href={project.withLink}>{project.with}</MaybeLink>
-              </Text>
+              <div className="col-span-6 pr-10">
+                <Text>{project.services}</Text>
+                <Text>{project.sector}</Text>
+                <Text>{project.inPractice}</Text>
+                <Text>
+                  <MaybeLink href={project.withLink}>{project.with}</MaybeLink>
+                </Text>
+              </div>
             </div>
           </div>
         ))}
