@@ -1,5 +1,6 @@
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import { FlipText } from "@/components/FlipText";
 import { Text } from "@/components/Text";
 import type { Project } from "@/types/home";
 
@@ -7,68 +8,18 @@ import type { Project } from "@/types/home";
 // per second, so every cell scrolls at the same reading pace.
 const CHAR_STEP_MS = 45;
 
-// Mirror a letter on either the x or the y axis (one or the other, at random) —
-// no scaling on the unused axis, so the letter only flips, never resizes.
-type LetterMirror = { sx: number; sy: number };
-function randomMirror(): LetterMirror {
-  return Math.random() < 0.5 ? { sx: -1, sy: 1 } : { sx: 1, sy: -1 };
-}
-
 // When an href is present, render the word as a link whose letters each
-// randomly mirror (x or y) while hovered. Without a link, render plain text and
-// no hover effect. Letters are split per word so wrapping still happens between
-// words, not mid-word.
+// randomly mirror (x or y) while hovered. Without a link, render plain text.
 function MaybeLink({ href, children }: { href?: string; children: ReactNode }) {
-  const text = typeof children === "string" ? children : "";
-  const [mirrors, setMirrors] = useState<LetterMirror[]>([]);
-
   if (!href) return <>{children}</>;
-
-  // One fresh mirror per non-space letter on enter; clear on leave.
-  const handleEnter = () =>
-    setMirrors(
-      text
-        .replace(/ /g, "")
-        .split("")
-        .map(() => randomMirror())
-    );
-  const handleLeave = () => setMirrors([]);
-
-  let letterIndex = 0;
-  const words = text.split(" ");
-
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="cursor-pointer"
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
     >
-      {words.map((word, wi) => (
-        <Fragment key={wi}>
-          <span style={{ display: "inline-block" }}>
-            {word.split("").map((ch, ci) => {
-              const m = mirrors[letterIndex++];
-              return (
-                <span
-                  key={ci}
-                  style={{
-                    display: "inline-block",
-                    transform: m
-                      ? `scaleX(${m.sx}) scaleY(${m.sy})`
-                      : undefined,
-                  }}
-                >
-                  {ch}
-                </span>
-              );
-            })}
-          </span>
-          {wi < words.length - 1 ? " " : null}
-        </Fragment>
-      ))}
+      <FlipText>{typeof children === "string" ? children : ""}</FlipText>
     </a>
   );
 }
@@ -180,8 +131,12 @@ export function ProjectGroup({
                   {project.project}
                 </MaybeLink>
               </Text>
-              <Text className="col-span-3">{project.services}</Text>
-              <Text className="col-span-2">{project.sector}</Text>
+              <ScrollOnHover className="col-span-3">
+                {project.services}
+              </ScrollOnHover>
+              <ScrollOnHover className="col-span-2">
+                {project.sector}
+              </ScrollOnHover>
               <ScrollOnHover className="col-span-6">
                 {project.inPractice}
               </ScrollOnHover>

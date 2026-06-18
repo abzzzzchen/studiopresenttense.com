@@ -12,14 +12,24 @@ function randomTransform(): CharTransform {
   };
 }
 
-// Desktop-only hover animation (ported from the Figma export): the email line
-// itself stays put, while hovering a character spawns two mirrored ghost copies
-// of it and its ±2 neighbours stacked below the line (random axis flips + a
-// dampened vertical offset). The transform is instant.
+// Build the CSS transform for one row, optionally damping the vertical offset.
+function toTransform({ y, sx, sy }: CharTransform, damp = 1) {
+  return `translateY(${y * damp}px) scaleX(${sx}) scaleY(${sy})`;
+}
+
+// Vertical-offset damping for the two ghost rows.
+const GHOST_DAMP = 0.6;
+
+// Desktop-only hover animation (ported from the Figma export): hovering a
+// character offsets and flips it and its ±2 neighbours in the email line itself,
+// and spawns two mirrored ghost copies of them stacked below the line. Each of
+// the three rows gets its own random transform per letter, so no two rows match.
+// The transform is instant.
 // Keeps `data-fit-line` so the existing width-fitting logic still scales it.
 export function HoverEmail({ onCopy }: { onCopy: () => void }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [transforms, setTransforms] = useState<Record<number, CharTransform>>(
+  // Per letter, one transform per row: [main, ghost, ghost].
+  const [transforms, setTransforms] = useState<Record<number, CharTransform[]>>(
     {}
   );
   const chars = EMAIL.split("");
@@ -31,7 +41,7 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
       for (let d = -2; d <= 2; d++) {
         const idx = i + d;
         if (idx >= 0 && idx < chars.length && !next[idx]) {
-          next[idx] = randomTransform();
+          next[idx] = [randomTransform(), randomTransform(), randomTransform()];
         }
       }
       return next;
@@ -54,9 +64,7 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
     >
       {chars.map((ch, i) => {
         const isActive = activeIndex !== null && Math.abs(i - activeIndex) <= 2;
-        const t = transforms[i];
-        const ghostTransform =
-          t && `translateY(${t.y * 0.6}px) scaleX(${t.sx}) scaleY(${t.sy})`;
+        const rows = isActive ? transforms[i] : undefined;
 
         return (
           <span
@@ -68,29 +76,37 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
               cursor: "pointer",
             }}
           >
-            {ch}
-            {isActive && t && (
+            {/* the visible glyph — transformed without affecting the ghosts */}
+            <span
+              style={{
+                display: "inline-block",
+                transform: rows ? toTransform(rows[0]) : undefined,
+              }}
+            >
+              {ch}
+            </span>
+            {rows && (
               <span
                 aria-hidden
                 style={{
                   position: "absolute",
                   left: 0,
                   top: "0.9em",
-                  transform: ghostTransform,
+                  transform: toTransform(rows[1], GHOST_DAMP),
                   pointerEvents: "none",
                 }}
               >
                 {ch}
               </span>
             )}
-            {isActive && t && (
+            {rows && (
               <span
                 aria-hidden
                 style={{
                   position: "absolute",
                   left: 0,
                   top: "1.8em",
-                  transform: ghostTransform,
+                  transform: toTransform(rows[2], GHOST_DAMP),
                   pointerEvents: "none",
                 }}
               >

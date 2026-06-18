@@ -11,5 +11,6 @@ export const HERO_INTERVAL_MS = 1500;
 export const EMAIL_FILL_MOBILE = 0.75;
 export const EMAIL_FILL_DESKTOP = 1;
 
-// Tailwind `sm` breakpoint (px); above it the desktop email is shown.
-export const SM_BREAKPOINT = 640;
+// Tailwind `sm` breakpoint (px, see globals.css); at/above it the desktop email
+// is shown, matching the `sm:` layout swap.
+export const SM_BREAKPOINT = 641;

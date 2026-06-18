@@ -10,7 +10,8 @@ import type { GetStaticProps } from "next";
 import { motion } from "motion/react";
 import { PortableText } from "next-sanity";
 
-import { Text } from "@/components/Text";
+import { FlipText } from "@/components/FlipText";
+import { SIZE_STYLES, Text } from "@/components/Text";
 import { HoverEmail } from "@/components/home/HoverEmail";
 import { ProjectGroup } from "@/components/home/ProjectGroup";
 import { studioComponents } from "@/components/home/studioComponents";
@@ -78,7 +79,7 @@ export default function Home({
     const hero = heroRef.current;
     if (!hero) return;
 
-    // The hero's content-box width already excludes the page padding (px-[1.3228vw])
+    // The hero's content-box width already excludes the page padding (px-5)
     // and the vertical scrollbar, so lines fit exactly within the padded area.
     // Scale that target by the per-breakpoint fill ratio so the email can be
     // tweaked to fill less than the full width.
@@ -127,27 +128,19 @@ export default function Home({
   }, [fitToViewport]);
 
   return (
-    <div className="px-[1.3228vw] overflow-x-hidden">
+    <div className="px-5 overflow-x-hidden">
       {/* hero */}
-      <div
-        ref={heroRef}
-        className="h-[calc(100vh-44px)] pt-[1.3228vw] relative"
-      >
-        {/* mobile: one word per line, each scaled to fill the width */}
+      <div ref={heroRef} className="h-[calc(100vh-44px)] pt-5 relative">
+        {/* mobile: one word per line, at bodyLarge size (no dynamic scaling) */}
         <div className="block sm:hidden">
           <h1
             onClick={copyEmail}
-            style={{ margin: 0, lineHeight: 0.9, letterSpacing: "-0.02em" }}
+            className={`m-0 cursor-pointer ${SIZE_STYLES.bodyLarge}`}
           >
             {["hello@", "studio", "present", "tense", ".com"].map((line) => (
               <span
                 key={line}
-                data-fit-line
-                style={{
-                  display: "block",
-                  width: "fit-content",
-                  whiteSpace: "nowrap",
-                }}
+                style={{ display: "block", whiteSpace: "nowrap" }}
               >
                 {line}
               </span>
@@ -161,11 +154,11 @@ export default function Home({
         <div className="hidden sm:block">
           <HoverEmail onCopy={copyEmail} />
           {emailJustCopied ? (
-            <Text className="text-left -mt-1">Email address copied.</Text>
+            <Text className="text-left">Email address copied.</Text>
           ) : null}
         </div>
         {heroImages.length > 0 && !lightboxOpen ? (
-          <div className="absolute bottom-0 left-0 pb-[1.3228vw]">
+          <div className="absolute bottom-0 left-0 pb-5">
             <motion.img
               layoutId="hero-image"
               transition={{ type: "spring", bounce: 0, duration: 0.5 }}
@@ -178,28 +171,28 @@ export default function Home({
         ) : null}
       </div>
       {/* body */}
-      <div className="flex flex-col gap-20 sm:gap-40 pb-[1.3228vw]">
+      <div className="flex flex-col gap-20 sm:gap-40 pb-5">
         {/* studio */}
-        <div className=" grid grid-cols-12 gap-[1.3228vw]">
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[1.3228vw] pr-[1.3228vw]">
+        <div className=" grid grid-cols-12 gap-5">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
-              className="cursor-pointer scroll-mt-[1.3228vw]"
+              className="cursor-pointer scroll-mt-5"
             >
-              Studio
+              <FlipText>Studio</FlipText>
             </Text>
             <div className="flex flex-col gap-2">
               <PortableText value={studio} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[1.3228vw] pr-[1.3228vw]">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
-              className="cursor-pointer scroll-mt-[1.3228vw]"
+              className="cursor-pointer scroll-mt-5"
             >
-              Services
+              <FlipText>Services</FlipText>
             </Text>
             <div className="flex flex-col">
               {services.map((service, i) => (
@@ -207,25 +200,25 @@ export default function Home({
               ))}
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[1.3228vw] pr-[1.3228vw]">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
-              className="cursor-pointer scroll-mt-[1.3228vw]"
+              className="cursor-pointer scroll-mt-5"
             >
-              In Practice
+              <FlipText>In Practice</FlipText>
             </Text>
             <div className="flex flex-col gap-2">
               <PortableText value={inPractice} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[1.3228vw] pr-[1.3228vw]">
+          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
-              className="cursor-pointer scroll-mt-[1.3228vw]"
+              className="cursor-pointer scroll-mt-5"
             >
-              Principles
+              <FlipText>Principles</FlipText>
             </Text>
             <div className="flex flex-col gap-2">
               <PortableText value={principles} components={studioComponents} />
@@ -236,13 +229,16 @@ export default function Home({
           <ProjectGroup label="Currently" projects={currently} />
           <ProjectGroup label="Previously" projects={previously} />
         </div>
+        <div>
+          <Text size="bodyRegular">Magically built by Headlight</Text>
+        </div>
       </div>
       {/* lightbox: the hero image morphs to the centre of the viewport */}
       {heroImages.length > 0 && lightboxOpen ? (
         <motion.img
           layoutId="hero-image"
           transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-          className="fixed inset-0 z-[1.3228vw]0 m-auto aspect-[4.5/3] w-[min(90vw,135vh)] cursor-pointer"
+          className="fixed inset-0 z-50 m-auto aspect-[4.5/3] w-[min(90vw,135vh)] cursor-pointer"
           src={heroImages[activeIndex]}
           alt="Studio Present Tense"
           onClick={() => setLightboxOpen(false)}
