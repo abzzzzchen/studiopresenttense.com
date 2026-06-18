@@ -16,7 +16,7 @@
 
   /* One line of body text: 0.94 (bodyRegular leading) × the bodyRegular size at
      each breakpoint. Keep these in sync with the type ramp in Text.tsx. */
-  --body-leading: 15.04px; /* 16 × 0.94 */
+  --body-leading: 13.16px; /* 14 × 0.94 */
 }
 @media (min-width: 641px) {
   :root {

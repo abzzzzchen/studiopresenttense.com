@@ -6,7 +6,7 @@ import type { ComponentProps } from "react";
 //
 // Font sizes step at the custom breakpoints defined in globals.css (mobile-first;
 // each range overrides the previous):
-//   ≤640 (mobile, base)  regular 16  large 32
+//   ≤640 (mobile, base)  regular 14  large 32
 //   sm 641–880 (tablet)  regular 18  large 36
 //   md 881–1200          regular 14  large 28
 //   lg 1201–1727         regular 16  large 32
@@ -15,7 +15,7 @@ export const SIZE_STYLES = {
   bodyLarge:
     "text-[28px] sm:text-[36px] md:text-[28px] lg:text-[32px] xl:text-[40px] tracking-[-.02em] leading-[0.94]",
   bodyRegular:
-    "text-[16px] sm:text-[18px] md:text-[14px] lg:text-[16px] xl:text-[20px] leading-[0.94]",
+    "text-[14px] sm:text-[18px] md:text-[14px] lg:text-[16px] xl:text-[20px] leading-[0.94]",
 } as const;
 
 export type TextSize = keyof typeof SIZE_STYLES;
