@@ -13,9 +13,9 @@ import type { ComponentProps } from "react";
 //   xl 1728+             regular 20  large 40
 export const SIZE_STYLES = {
   bodyLarge:
-    "text-[32px] sm:text-[36px] md:text-[28px] lg:text-[32px] xl:text-[40px] tracking-[-.02em] leading-[0.92]",
+    "text-[32px] sm:text-[36px] md:text-[28px] lg:text-[32px] xl:text-[40px] tracking-[-.02em] leading-[0.94]",
   bodyRegular:
-    "text-[16px] sm:text-[18px] md:text-[14px] lg:text-[16px] xl:text-[20px] tracking-[-.01em] leading-[0.92]",
+    "text-[16px] sm:text-[18px] md:text-[14px] lg:text-[16px] xl:text-[20px] leading-[0.94]",
 } as const;
 
 export type TextSize = keyof typeof SIZE_STYLES;
