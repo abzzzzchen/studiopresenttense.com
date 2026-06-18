@@ -132,7 +132,7 @@ export default function Home({
       {/* hero */}
       <div ref={heroRef} className="h-[calc(100vh-44px)] pt-5 relative">
         {/* mobile: one word per line, at bodyLarge size (no dynamic scaling) */}
-        <div className="block sm:hidden">
+        <div className="block md:hidden">
           <h1
             onClick={copyEmail}
             className={`m-0 cursor-pointer ${SIZE_STYLES.bodyLarge}`}
@@ -151,7 +151,7 @@ export default function Home({
           ) : null}
         </div>
         {/* desktop: single line scaled to fill the width, with hover animation */}
-        <div className="hidden sm:block">
+        <div className="hidden md:block">
           <HoverEmail onCopy={copyEmail} />
           {emailJustCopied ? (
             <Text className="text-left">Email address copied.</Text>
@@ -162,7 +162,7 @@ export default function Home({
             <motion.img
               layoutId="hero-image"
               transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-              className="aspect-[4.5/3] w-[75vw] sm:w-[27vw] cursor-pointer"
+              className="aspect-[4.5/3] w-[75vw] md:w-[27vw] cursor-pointer"
               src={heroImages[activeIndex]}
               alt="Studio Present Tense"
               onClick={() => setLightboxOpen(true)}
@@ -171,10 +171,10 @@ export default function Home({
         ) : null}
       </div>
       {/* body */}
-      <div className="flex flex-col gap-20 sm:gap-40 pb-5">
+      <div className="flex flex-col gap-20 md:gap-40 pb-5">
         {/* studio */}
-        <div className=" grid grid-cols-12 gap-5">
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
+        <div className=" grid grid-cols-12 gap-10 md:gap-5">
+          <div className="col-span-12 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -186,7 +186,7 @@ export default function Home({
               <PortableText value={studio} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
+          <div className="col-span-12 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -200,7 +200,7 @@ export default function Home({
               ))}
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
+          <div className="col-span-12 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -212,7 +212,7 @@ export default function Home({
               <PortableText value={inPractice} components={studioComponents} />
             </div>
           </div>
-          <div className="col-span-12 sm:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
+          <div className="col-span-12 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -230,19 +230,35 @@ export default function Home({
           <ProjectGroup label="Previously" projects={previously} />
         </div>
         <div>
-          <Text size="bodyRegular">Magically built by Headlight</Text>
+          <Text size="bodyRegular">
+            Magically built by{" "}
+            <a
+              href="https://headlight.la"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FlipText>Headlight</FlipText>
+            </a>
+          </Text>
         </div>
       </div>
       {/* lightbox: the hero image morphs to the centre of the viewport */}
       {heroImages.length > 0 && lightboxOpen ? (
-        <motion.img
-          layoutId="hero-image"
-          transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-          className="fixed inset-0 z-50 m-auto aspect-[4.5/3] w-[min(90vw,135vh)] cursor-pointer"
-          src={heroImages[activeIndex]}
-          alt="Studio Present Tense"
-          onClick={() => setLightboxOpen(false)}
-        />
+        <>
+          {/* transparent layer so clicking anywhere outside the image closes it */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setLightboxOpen(false)}
+          />
+          <motion.img
+            layoutId="hero-image"
+            transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+            className="fixed inset-0 z-50 m-auto aspect-[4.5/3] w-[min(90vw,135vh)] cursor-pointer"
+            src={heroImages[activeIndex]}
+            alt="Studio Present Tense"
+            onClick={() => setLightboxOpen(false)}
+          />
+        </>
       ) : null}
     </div>
   );

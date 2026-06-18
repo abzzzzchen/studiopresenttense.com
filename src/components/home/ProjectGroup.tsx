@@ -77,7 +77,7 @@ export function ProjectGroup({
   return (
     <div>
       {/* mobile: one stacked card per project */}
-      <div className="flex flex-col gap-2 sm:hidden">
+      <div className="flex flex-col gap-2 md:hidden">
         <div>
           <Text>{label}</Text>
           <Text>Services</Text>
@@ -88,23 +88,21 @@ export function ProjectGroup({
         {projects.map((project, i) => (
           <div key={i} className="pl-8">
             <div className="grid grid-cols-12">
-              <Text className="col-span-8">
+              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
                 <MaybeLink href={project.projectLink}>
                   {project.project}
                 </MaybeLink>
               </Text>
-            </div>
-            <div className="grid grid-cols-12">
-              <Text className="col-span-8">{project.services}</Text>
-            </div>
-            <div className="grid grid-cols-12">
-              <Text className="col-span-8">{project.sector}</Text>
-            </div>
-            <div className="grid grid-cols-12">
-              <Text className="col-span-8">{project.inPractice}</Text>
-            </div>
-            <div className="grid grid-cols-12">
-              <Text className="col-span-8">
+              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
+                {project.services}
+              </Text>
+              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
+                {project.sector}
+              </Text>
+              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
+                {project.inPractice}
+              </Text>
+              <Text className="sm:col-start-1 col-span-9 sm:col-span-5">
                 <MaybeLink href={project.withLink}>{project.with}</MaybeLink>
               </Text>
             </div>
@@ -113,7 +111,7 @@ export function ProjectGroup({
       </div>
 
       {/* desktop: row-major, hidden on mobile */}
-      <div className="hidden flex-col sm:flex gap-[1.3228vw]">
+      <div className="hidden flex-col md:flex gap-[var(--body-leading)]">
         {/* header row */}
         <div className="grid grid-cols-16 gap-5">
           <Text className="col-span-3">{label}</Text>
