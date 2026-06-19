@@ -13,6 +13,7 @@ import { PortableText } from "next-sanity";
 import { FlipText } from "@/components/FlipText";
 import { SIZE_STYLES, Text } from "@/components/Text";
 import { HoverEmail } from "@/components/home/HoverEmail";
+import { MobileHeroImage } from "@/components/home/MobileHeroImage";
 import { ProjectGroup } from "@/components/home/ProjectGroup";
 import { studioComponents } from "@/components/home/studioComponents";
 import {
@@ -138,12 +139,9 @@ export default function Home({
   const mobileSrc = mobileImages[activeIndex % (mobileImages.length || 1)];
 
   return (
-    <div className="px-3 md:px-5 overflow-x-hidden">
+    <div className="p-3 md:p-5 overflow-x-hidden">
       {/* hero */}
-      <div
-        ref={heroRef}
-        className="h-[25vh] md:h-[calc(100vh-44px)] pt-3 md:pt-5 relative"
-      >
+      <div ref={heroRef} className="md:h-[calc(100vh-60px)] relative">
         {/* mobile: one word per line, at bodyLarge size (no dynamic scaling) */}
         {/* <div className="block md:hidden">
           <h1
@@ -163,34 +161,39 @@ export default function Home({
             <Text className="text-left">Email address copied.</Text>
           ) : null}
         </div> */}
-        {/* desktop: single line scaled to fill the width, with hover animation */}
-        <div>
+        {/* desktop: single line scaled to fill the width, with hover animation.
+            The "copied" feedback is an absolute overlay so it never reflows the
+            hero image / body stack below. */}
+        <div className="relative">
           <HoverEmail onCopy={copyEmail} />
           {emailJustCopied ? (
-            <Text className="text-left">Email address copied.</Text>
+            <Text className="text-left absolute left-0 top-full">
+              Email address copied.
+            </Text>
           ) : null}
         </div>
-        {/* hero image — portrait thumbnail on mobile, landscape on desktop.
-            A single element keeps exactly one `hero-image` layoutId mounted so
-            the morph to/from the lightbox stays clean (no flash). */}
+        {/* mobile: full-width portrait image that scroll-morphs to the corner */}
+        {hasHeroImages ? (
+          <MobileHeroImage src={mobileSrc} heroRef={heroRef} />
+        ) : null}
+        {/* desktop: landscape thumbnail that morphs to/from the lightbox. The
+            shared `hero-image` layoutId stays clean since only this one (or the
+            lightbox) is mounted at a time. */}
         {hasHeroImages && !lightboxOpen ? (
-          <div className="fixed md:absolute bottom-0 left-0 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] md:p-0 md:pb-5">
-            <picture>
-              <source media="(min-width: 881px)" srcSet={desktopSrc} />
-              <motion.img
-                layoutId="hero-image"
-                transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-                className="aspect-[4/5] w-[calc(33.33vw-20px)] md:aspect-[5/4] md:w-[27vw] object-cover cursor-pointer"
-                src={mobileSrc}
-                alt="Studio Present Tense"
-                onClick={() => setLightboxOpen(true)}
-              />
-            </picture>
+          <div className="hidden md:block absolute bottom-0 left-0 pb-5">
+            <motion.img
+              layoutId="hero-image"
+              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+              className="aspect-[5/4] w-[27vw] object-cover cursor-pointer"
+              src={desktopSrc}
+              alt="Studio Present Tense"
+              onClick={() => setLightboxOpen(true)}
+            />
           </div>
         ) : null}
       </div>
       {/* body */}
-      <div className="flex flex-col gap-20 md:gap-40 pb-5">
+      <div className="flex flex-col gap-20 md:gap-40">
         {/* studio */}
         <div className="grid grid-cols-9 md:grid-cols-12 gap-x-3 gap-y-7 md:gap-5">
           <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-3 pr-0 md:pr-5">
@@ -263,7 +266,7 @@ export default function Home({
           </div>
         </div>
       </div>
-      {/* lightbox: the hero image morphs to the centre of the viewport */}
+      {/* desktop lightbox: the hero image morphs to the centre of the viewport */}
       {hasHeroImages && lightboxOpen ? (
         <>
           {/* transparent layer so clicking anywhere outside the image closes it */}
@@ -271,17 +274,14 @@ export default function Home({
             className="fixed inset-0 z-40"
             onClick={() => setLightboxOpen(false)}
           />
-          <picture>
-            <source media="(min-width: 881px)" srcSet={desktopSrc} />
-            <motion.img
-              layoutId="hero-image"
-              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-              className="fixed inset-0 z-50 m-auto aspect-[4/5] w-[min(90vw,72vh)] md:aspect-[5/4] md:w-[min(90vw,112.5vh)] object-cover cursor-pointer"
-              src={mobileSrc}
-              alt="Studio Present Tense"
-              onClick={() => setLightboxOpen(false)}
-            />
-          </picture>
+          <motion.img
+            layoutId="hero-image"
+            transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+            className="fixed inset-0 z-50 m-auto aspect-[5/4] w-[min(90vw,112.5vh)] object-cover cursor-pointer"
+            src={desktopSrc}
+            alt="Studio Present Tense"
+            onClick={() => setLightboxOpen(false)}
+          />
         </>
       ) : null}
     </div>

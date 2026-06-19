@@ -57,7 +57,7 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
         display: "inline-block",
         whiteSpace: "nowrap",
         margin: 0,
-        lineHeight: 0.9,
+        lineHeight: 0.94,
         letterSpacing: "-0.02em",
         cursor: "pointer",
         textDecoration: "none",
