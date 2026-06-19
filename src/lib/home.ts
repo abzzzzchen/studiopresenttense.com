@@ -8,7 +8,8 @@ const HOME_QUERY = `{
     "services": services[]->title,
     inPractice,
     principles,
-    images
+    images,
+    mobileImages
   },
   "projects": *[_type == "project"]{
     _id,
@@ -41,10 +42,25 @@ type HomeData = {
     services?: (string | null)[];
     inPractice?: StudioBlocks;
     principles?: StudioBlocks;
-    images?: Parameters<typeof urlFor>[0][];
+    images?: Parameters<typeof urlFor>[0][]; // desktop (landscape)
+    mobileImages?: Parameters<typeof urlFor>[0][]; // mobile (portrait)
   } | null;
   projects: SanityProject[];
 };
+
+// Turn an array of Sanity image objects into resolved URLs, skipping entries
+// with no uploaded asset — urlFor can't resolve a URL from a bare
+// `{_key, _type:"image"}` placeholder.
+const toImageUrls = (imgs?: Parameters<typeof urlFor>[0][]): string[] =>
+  (imgs ?? [])
+    .filter(
+      (img) =>
+        img &&
+        typeof img === "object" &&
+        "asset" in img &&
+        Boolean(img.asset),
+    )
+    .map((img) => urlFor(img).width(1200).url());
 
 const toRow = (p: SanityProject): Project => ({
   project: p.title ?? "",
@@ -61,6 +77,9 @@ export async function fetchHomeData(): Promise<HomeProps> {
   const homepage = data?.homepage ?? null;
   const projects = data?.projects ?? [];
 
+  const desktopImages = toImageUrls(homepage?.images);
+  const mobileImages = toImageUrls(homepage?.mobileImages);
+
   return {
     studio: homepage?.studio ?? [],
     services: (homepage?.services ?? []).filter(
@@ -68,17 +87,10 @@ export async function fetchHomeData(): Promise<HomeProps> {
     ),
     inPractice: homepage?.inPractice ?? [],
     principles: homepage?.principles ?? [],
-    // Skip image entries that have no uploaded asset — urlFor can't resolve
-    // a URL from a bare `{_key, _type:"image"}` placeholder.
-    heroImages: (homepage?.images ?? [])
-      .filter(
-        (img) =>
-          img &&
-          typeof img === "object" &&
-          "asset" in img &&
-          Boolean(img.asset),
-      )
-      .map((img) => urlFor(img).width(1200).url()),
+    // Each breakpoint falls back to the other set so the hero is never blank
+    // when only one set has been uploaded.
+    desktopImages: desktopImages.length ? desktopImages : mobileImages,
+    mobileImages: mobileImages.length ? mobileImages : desktopImages,
     currently: projects.filter((p) => p.status === "currently").map(toRow),
     previously: projects.filter((p) => p.status === "previously").map(toRow),
   };

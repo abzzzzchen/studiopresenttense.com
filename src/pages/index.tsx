@@ -31,7 +31,8 @@ export default function Home({
   services,
   inPractice,
   principles,
-  heroImages,
+  desktopImages,
+  mobileImages,
   currently,
   previously,
 }: HomeProps) {
@@ -65,15 +66,18 @@ export default function Home({
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxOpen]);
 
-  // Cycle the hero image every 1.5s, swapping instantly (no animation).
+  // Cycle the hero image every 1.5s, swapping instantly (no animation). The two
+  // sets are parallel, so a single index drives both; cycle over the longer one
+  // and index each set modulo its own length.
+  const heroCount = Math.max(desktopImages.length, mobileImages.length);
   useEffect(() => {
-    if (heroImages.length <= 1) return;
+    if (heroCount <= 1) return;
     const id = setInterval(() => {
-      setActiveIndex((i) => (i + 1) % heroImages.length);
+      setActiveIndex((i) => (i + 1) % heroCount);
     }, HERO_INTERVAL_MS);
 
     return () => clearInterval(id);
-  }, [heroImages.length]);
+  }, [heroCount]);
 
   const fitToViewport = useCallback(() => {
     const hero = heroRef.current;
@@ -127,6 +131,12 @@ export default function Home({
     return () => window.removeEventListener("resize", fitToViewport);
   }, [fitToViewport]);
 
+  // The current frame for each set. The browser picks which to display via the
+  // <picture> <source> media query, so both stay in sync with one index.
+  const hasHeroImages = heroCount > 0;
+  const desktopSrc = desktopImages[activeIndex % (desktopImages.length || 1)];
+  const mobileSrc = mobileImages[activeIndex % (mobileImages.length || 1)];
+
   return (
     <div className="px-3 md:px-5 overflow-x-hidden">
       {/* hero */}
@@ -163,24 +173,27 @@ export default function Home({
         {/* hero image — portrait thumbnail on mobile, landscape on desktop.
             A single element keeps exactly one `hero-image` layoutId mounted so
             the morph to/from the lightbox stays clean (no flash). */}
-        {heroImages.length > 0 && !lightboxOpen ? (
+        {hasHeroImages && !lightboxOpen ? (
           <div className="fixed md:absolute bottom-0 left-0 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] md:p-0 md:pb-5">
-            <motion.img
-              layoutId="hero-image"
-              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-              className="aspect-[3/4.5] w-[calc(33.33vw-12px)] md:aspect-[4.5/3] md:w-[27vw] object-cover cursor-pointer"
-              src={heroImages[activeIndex]}
-              alt="Studio Present Tense"
-              onClick={() => setLightboxOpen(true)}
-            />
+            <picture>
+              <source media="(min-width: 881px)" srcSet={desktopSrc} />
+              <motion.img
+                layoutId="hero-image"
+                transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+                className="aspect-[4/5] w-[calc(33.33vw-20px)] md:aspect-[5/4] md:w-[27vw] object-cover cursor-pointer"
+                src={mobileSrc}
+                alt="Studio Present Tense"
+                onClick={() => setLightboxOpen(true)}
+              />
+            </picture>
           </div>
         ) : null}
       </div>
       {/* body */}
       <div className="flex flex-col gap-20 md:gap-40 pb-5">
         {/* studio */}
-        <div className=" grid grid-cols-9 md:grid-cols-12 gap-x-3 gap-y-10 md:gap-5">
-          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-0 md:pr-5">
+        <div className="grid grid-cols-9 md:grid-cols-12 gap-x-3 gap-y-7 md:gap-5">
+          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-3 pr-0 md:pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -192,7 +205,7 @@ export default function Home({
               <PortableText value={studio} components={studioComponents} />
             </div>
           </div>
-          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-0 md:pr-5">
+          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-3 pr-0 md:pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -206,7 +219,7 @@ export default function Home({
               ))}
             </div>
           </div>
-          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-0 md:pr-5">
+          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-3 pr-0 md:pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -218,7 +231,7 @@ export default function Home({
               <PortableText value={inPractice} components={studioComponents} />
             </div>
           </div>
-          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-[var(--body-leading)] pr-0 md:pr-5">
+          <div className="col-start-4 col-span-6 md:col-span-3 flex flex-col gap-3 pr-0 md:pr-5">
             <Text
               size="bodyLarge"
               onClick={scrollToTop}
@@ -251,21 +264,24 @@ export default function Home({
         </div>
       </div>
       {/* lightbox: the hero image morphs to the centre of the viewport */}
-      {heroImages.length > 0 && lightboxOpen ? (
+      {hasHeroImages && lightboxOpen ? (
         <>
           {/* transparent layer so clicking anywhere outside the image closes it */}
           <div
             className="fixed inset-0 z-40"
             onClick={() => setLightboxOpen(false)}
           />
-          <motion.img
-            layoutId="hero-image"
-            transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-            className="fixed inset-0 z-50 m-auto aspect-[3/4.5] w-[min(90vw,60vh)] md:aspect-[4.5/3] md:w-[min(90vw,135vh)] object-cover cursor-pointer"
-            src={heroImages[activeIndex]}
-            alt="Studio Present Tense"
-            onClick={() => setLightboxOpen(false)}
-          />
+          <picture>
+            <source media="(min-width: 881px)" srcSet={desktopSrc} />
+            <motion.img
+              layoutId="hero-image"
+              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+              className="fixed inset-0 z-50 m-auto aspect-[4/5] w-[min(90vw,72vh)] md:aspect-[5/4] md:w-[min(90vw,112.5vh)] object-cover cursor-pointer"
+              src={mobileSrc}
+              alt="Studio Present Tense"
+              onClick={() => setLightboxOpen(false)}
+            />
+          </picture>
         </>
       ) : null}
     </div>

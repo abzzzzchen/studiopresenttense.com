@@ -60,6 +60,8 @@ export function HoverEmail({ onCopy }: { onCopy: () => void }) {
         lineHeight: 0.9,
         letterSpacing: "-0.02em",
         cursor: "pointer",
+        textDecoration: "none",
+        WebkitTextDecorationLine: "none",
       }}
     >
       {chars.map((ch, i) => {

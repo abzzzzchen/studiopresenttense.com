@@ -29,8 +29,19 @@ export const homepageType = defineType({
       type: 'blockContent',
     }),
     defineField({
+      // Field key kept as `images` so existing uploads carry over without a
+      // data migration; it now represents the desktop (landscape) set.
       name: 'images',
-      title: 'Images',
+      title: 'Desktop Images (landscape)',
+      description: 'Landscape images shown on desktop — cropped to 5:4.',
+      type: 'array',
+      of: [defineArrayMember({type: 'image', options: {hotspot: true}})],
+    }),
+    defineField({
+      name: 'mobileImages',
+      title: 'Mobile Images (portrait)',
+      description:
+        'Portrait images shown on mobile — cropped to 4:5. If left empty, the desktop images are used.',
       type: 'array',
       of: [defineArrayMember({type: 'image', options: {hotspot: true}})],
     }),

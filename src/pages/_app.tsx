@@ -12,6 +12,12 @@ export default function App({ Component, pageProps }: AppProps) {
           name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
+        {/* Stop mobile browsers from auto-linking the email/phone/address (which
+            adds an underline + tap styling we never want). */}
+        <meta
+          name="format-detection"
+          content="telephone=no, email=no, address=no, date=no"
+        />
       </Head>
       <Component {...pageProps} />
     </>

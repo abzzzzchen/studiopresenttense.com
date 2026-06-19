@@ -18,7 +18,8 @@ export type HomeProps = {
   services: string[];
   inPractice: StudioBlocks;
   principles: StudioBlocks;
-  heroImages: string[];
+  desktopImages: string[];
+  mobileImages: string[];
   currently: Project[];
   previously: Project[];
 };
