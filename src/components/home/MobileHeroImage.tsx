@@ -1,11 +1,11 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useSpring, useTransform } from "motion/react";
 
 type Rect = { top: number; left: number; width: number; height: number };
 
 // Fraction of the hero's scroll over which the image morphs to the corner.
 // Lower = the image docks after less scrolling (and overlaps the body less).
-const DOCK_AT = 0.4;
+const DOCK_AT = 0.6;
 
 // Mobile-only hero image. It starts as a full-width portrait image in the hero
 // flow (between the email and the body) and, as the hero scrolls past the top,
@@ -34,6 +34,15 @@ export function MobileHeroImage({
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
+  });
+
+  // Smooth the raw scroll progress with a spring so the morph eases instead of
+  // tracking the (often choppy) mobile scroll position 1:1. The transforms below
+  // read from this softened value rather than scrollYProgress directly.
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 300,
+    damping: 40,
+    restDelta: 0.001,
   });
 
   useLayoutEffect(() => {
@@ -89,17 +98,17 @@ export function MobileHeroImage({
   // DOCK_AT fraction of the hero scroll (then clamps), so the image shrinks to
   // the corner quickly instead of overlapping the body text as it scrolls up.
   const scale = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0, DOCK_AT],
     [1, ready ? end!.width / start!.width : 1]
   );
   const x = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0, DOCK_AT],
     [0, ready ? end!.left - start!.left : 0]
   );
   const y = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0, DOCK_AT],
     [0, ready ? end!.top - start!.top : 0]
   );
@@ -110,7 +119,7 @@ export function MobileHeroImage({
           email above; mb = gap to the body text below — tweak each freely. */}
       <div
         ref={startRef}
-        className="mt-12 mb-4 w-full aspect-[4/5] md:hidden"
+        className="mt-14 mb-5 w-full aspect-[4/5] md:hidden"
       />
 
       {/* invisible anchor mirroring the final corner thumbnail (measured only) */}

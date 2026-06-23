@@ -27,6 +27,26 @@ import {
 import { fetchHomeData } from "@/lib/home";
 import type { HomeProps } from "@/types/home";
 
+// Clipboard fallback for non-secure contexts (LAN IP over http), where
+// navigator.clipboard is undefined. A hidden, off-screen textarea + execCommand
+// still copies during the tap's user gesture. Best-effort: silently no-ops if
+// even this is unavailable, since the on-screen confirmation is shown separately.
+function fallbackCopy(text: string) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  } catch {
+    // ignore — confirmation still shows; user can copy manually if needed
+  }
+}
+
 export default function Home({
   studio,
   services,
@@ -44,9 +64,17 @@ export default function Home({
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Copy the email and show the "Copied!" feedback for 2s (resetting the timer
-  // on repeat clicks/taps).
+  // on repeat clicks/taps). The async Clipboard API only exists in a secure
+  // context (https / localhost); over a LAN IP on plain http — how the dev
+  // server is usually reached on a phone — `navigator.clipboard` is undefined,
+  // so guard it and fall back to execCommand. Feedback shows regardless of which
+  // path runs, so the user always gets confirmation.
   const copyEmail = useCallback(() => {
-    navigator.clipboard.writeText(EMAIL);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(EMAIL).catch(() => fallbackCopy(EMAIL));
+    } else {
+      fallbackCopy(EMAIL);
+    }
     setEmailJustCopied(true);
     if (copiedTimer.current) clearTimeout(copiedTimer.current);
     copiedTimer.current = setTimeout(() => setEmailJustCopied(false), 2000);
@@ -141,33 +169,17 @@ export default function Home({
   return (
     <div className="p-3 md:p-5 overflow-x-hidden">
       {/* hero */}
-      <div ref={heroRef} className="md:h-[calc(100vh-60px)] relative">
-        {/* mobile: one word per line, at bodyLarge size (no dynamic scaling) */}
-        {/* <div className="block md:hidden">
-          <h1
-            onClick={copyEmail}
-            className={`m-0 cursor-pointer ${SIZE_STYLES.bodyLarge}`}
-          >
-            {["hello@", "studio", "present", "tense", ".com"].map((line) => (
-              <span
-                key={line}
-                style={{ display: "block", whiteSpace: "nowrap" }}
-              >
-                {line}
-              </span>
-            ))}
-          </h1>
-          {emailJustCopied ? (
-            <Text className="text-left">Email address copied.</Text>
-          ) : null}
-        </div> */}
+      <div
+        ref={heroRef}
+        className="md:h-[calc(100vh-60px)] xl:h-[calc(100vh-68px)] relative"
+      >
         {/* desktop: single line scaled to fill the width, with hover animation.
             The "copied" feedback is an absolute overlay so it never reflows the
             hero image / body stack below. */}
         <div className="relative">
           <HoverEmail onCopy={copyEmail} />
           {emailJustCopied ? (
-            <Text className="text-left absolute left-0 top-full">
+            <Text className="text-left absolute left-0 top-full z-20">
               Email address copied.
             </Text>
           ) : null}
@@ -184,7 +196,7 @@ export default function Home({
             <motion.img
               layoutId="hero-image"
               transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-              className="aspect-[5/4] w-[27vw] object-cover cursor-pointer"
+              className="aspect-[4/3] w-[27vw] object-cover cursor-pointer"
               src={desktopSrc}
               alt="Studio Present Tense"
               onClick={() => setLightboxOpen(true)}

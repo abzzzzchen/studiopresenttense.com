@@ -4,9 +4,17 @@ import { EMAIL } from "@/lib/constants";
 
 type CharTransform = { y: number; sx: number; sy: number };
 
+// Vertical offset range, in em so it scales with the email's font size. The line
+// is fit to the viewport width, so its font size is large on desktop and small
+// on mobile; an em offset keeps the jitter the same *fraction* of the glyph at
+// every size (a fixed px offset looked subtle on desktop but oversized on
+// mobile). 0.28em ≈ the previous 32px at the desktop font size, so desktop is
+// visually unchanged. Ghost rows are already positioned in em (top 0.9/1.8em).
+const OFFSET_EM = 0.28;
+
 function randomTransform(): CharTransform {
   return {
-    y: (Math.random() - 0.5) * 32,
+    y: (Math.random() - 0.5) * OFFSET_EM,
     sx: Math.random() > 0.5 ? -1 : 1,
     sy: Math.random() > 0.5 ? -1 : 1,
   };
@@ -14,7 +22,7 @@ function randomTransform(): CharTransform {
 
 // Build the CSS transform for one row, optionally damping the vertical offset.
 function toTransform({ y, sx, sy }: CharTransform, damp = 1) {
-  return `translateY(${y * damp}px) scaleX(${sx}) scaleY(${sy})`;
+  return `translateY(${y * damp}em) scaleX(${sx}) scaleY(${sy})`;
 }
 
 // Vertical-offset damping for the two ghost rows.
