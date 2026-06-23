@@ -33,7 +33,7 @@ export const homepageType = defineType({
       // data migration; it now represents the desktop (landscape) set.
       name: "images",
       title: "Desktop Images (landscape)",
-      description: "Landscape images shown on desktop — cropped to 4:3.",
+      description: "Landscape images shown on desktop — cropped to 3:2.",
       type: "array",
       of: [defineArrayMember({ type: "image", options: { hotspot: true } })],
     }),

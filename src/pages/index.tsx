@@ -48,6 +48,18 @@ function fallbackCopy(text: string) {
   }
 }
 
+// Single source of truth for the desktop hero image's aspect ratio, shared by
+// the bottom-left thumbnail and the expanded lightbox (they morph into each
+// other via a shared layoutId, so their ratios must match). Tweak this one value
+// to re-crop the hero — the lightbox width below derives its size from it, so the
+// spacing stays correct at any ratio. Written "w / h" (CSS aspect-ratio syntax).
+const HERO_IMAGE_AR = "3 / 2";
+
+// Largest box of ratio HERO_IMAGE_AR that fits within 90vw × 90vh (i.e. leaving
+// ~5vh/5vw of breathing room): width = min(90vw, 90vh × ratio). Height then
+// follows from aspect-ratio, capping at 90vh on tall screens.
+const HERO_LIGHTBOX_WIDTH = `min(90vw, 90vh * (${HERO_IMAGE_AR}))`;
+
 export default function Home({
   seo,
   studio,
@@ -192,9 +204,9 @@ export default function Home({
           <HoverEmail onCopy={copyEmail} />
           {emailJustCopied ? (
             <Text
-              // The tap-side flip is mobile-only; md:text-left pins it back to
-              // the left on desktop regardless of which half was clicked.
-              className={`absolute left-0 right-0 top-full z-20 md:text-left ${
+              // The confirmation jumps to the side opposite the click on every
+              // breakpoint — copiedAlign is set from the click x in copyEmail.
+              className={`absolute left-0 right-0 top-full z-20 ${
                 copiedAlign === "right" ? "text-right" : "text-left"
               }`}
             >
@@ -214,7 +226,8 @@ export default function Home({
             <motion.img
               layoutId="hero-image"
               transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-              className="aspect-[4/3] w-[27vw] object-cover cursor-pointer"
+              className="w-[27vw] object-cover cursor-pointer"
+              style={{ aspectRatio: HERO_IMAGE_AR }}
               src={desktopSrc}
               alt="Studio Present Tense"
               onClick={() => setLightboxOpen(true)}
@@ -307,7 +320,8 @@ export default function Home({
           <motion.img
             layoutId="hero-image"
             transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-            className="fixed inset-0 z-50 m-auto aspect-[5/4] w-[min(90vw,112.5vh)] object-cover cursor-pointer"
+            className="fixed inset-0 z-50 m-auto object-cover cursor-pointer"
+            style={{ aspectRatio: HERO_IMAGE_AR, width: HERO_LIGHTBOX_WIDTH }}
             src={desktopSrc}
             alt="Studio Present Tense"
             onClick={() => setLightboxOpen(false)}
