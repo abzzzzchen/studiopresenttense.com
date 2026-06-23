@@ -13,7 +13,20 @@ export type Project = {
   withLink?: string;
 };
 
+// Site-wide meta tags, resolved for the document <head>. ogImageUrl is an
+// absolute Sanity CDN URL, or null when no unfurl image is set. Optional fields
+// are null (not undefined) so the object stays JSON-serializable through
+// getStaticProps.
+export type Seo = {
+  title: string;
+  description: string;
+  ogImageUrl: string | null;
+  ogImageAlt: string | null;
+  tags: string[];
+};
+
 export type HomeProps = {
+  seo: Seo;
   studio: StudioBlocks;
   services: string[];
   inPractice: StudioBlocks;

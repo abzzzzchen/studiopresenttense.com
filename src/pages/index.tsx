@@ -11,6 +11,7 @@ import { motion } from "motion/react";
 import { PortableText } from "next-sanity";
 
 import { FlipText } from "@/components/FlipText";
+import { Seo } from "@/components/Seo";
 import { SIZE_STYLES, Text } from "@/components/Text";
 import { HoverEmail } from "@/components/home/HoverEmail";
 import { MobileHeroImage } from "@/components/home/MobileHeroImage";
@@ -48,6 +49,7 @@ function fallbackCopy(text: string) {
 }
 
 export default function Home({
+  seo,
   studio,
   services,
   inPractice,
@@ -168,6 +170,7 @@ export default function Home({
 
   return (
     <div className="p-3 md:p-5 overflow-x-hidden">
+      <Seo {...seo} />
       {/* hero */}
       <div
         ref={heroRef}

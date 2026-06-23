@@ -14,7 +14,7 @@ import { apiVersion, dataset, projectId } from "./sanity/env";
 import { schema } from "./sanity/schemaTypes";
 import { structure } from "./sanity/structure";
 
-const SINGLETONS = ["homepage"];
+const SINGLETONS = ["homepage", "seoSettings"];
 
 export default defineConfig({
   name: "default",

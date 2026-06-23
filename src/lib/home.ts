@@ -1,6 +1,6 @@
 import { client } from "../../sanity/lib/client";
 import { urlFor } from "../../sanity/lib/image";
-import type { HomeProps, Project, StudioBlocks } from "@/types/home";
+import type { HomeProps, Project, Seo, StudioBlocks } from "@/types/home";
 
 const HOME_QUERY = `{
   "homepage": *[_type == "homepage"][0]{
@@ -10,6 +10,12 @@ const HOME_QUERY = `{
     principles,
     images,
     mobileImages
+  },
+  "seo": *[_type == "seoSettings"][0]{
+    title,
+    description,
+    ogImage,
+    tags
   },
   "projects": *[_type == "project"]{
     _id,
@@ -36,31 +42,39 @@ type SanityProject = {
   collaboratorLink?: string;
 };
 
+type SanityImage = Parameters<typeof urlFor>[0];
+
 type HomeData = {
   homepage: {
     studio?: StudioBlocks;
     services?: (string | null)[];
     inPractice?: StudioBlocks;
     principles?: StudioBlocks;
-    images?: Parameters<typeof urlFor>[0][]; // desktop (landscape)
-    mobileImages?: Parameters<typeof urlFor>[0][]; // mobile (portrait)
+    images?: SanityImage[]; // desktop (landscape)
+    mobileImages?: SanityImage[]; // mobile (portrait)
+  } | null;
+  seo: {
+    title?: string;
+    description?: string;
+    ogImage?: SanityImage & { alt?: string };
+    tags?: (string | null)[];
   } | null;
   projects: SanityProject[];
 };
 
+// Site title used as the fallback whenever the SEO singleton is empty, so the
+// <head> is never blank before an editor fills it in.
+const SITE_TITLE = "Studio Present Tense";
+
+// urlFor can't resolve a URL from a bare `{_key, _type:"image"}` placeholder, so
+// only attempt resolution once an asset has actually been uploaded.
+const hasAsset = (img?: SanityImage): boolean =>
+  Boolean(img && typeof img === "object" && "asset" in img && img.asset);
+
 // Turn an array of Sanity image objects into resolved URLs, skipping entries
-// with no uploaded asset — urlFor can't resolve a URL from a bare
-// `{_key, _type:"image"}` placeholder.
-const toImageUrls = (imgs?: Parameters<typeof urlFor>[0][]): string[] =>
-  (imgs ?? [])
-    .filter(
-      (img) =>
-        img &&
-        typeof img === "object" &&
-        "asset" in img &&
-        Boolean(img.asset),
-    )
-    .map((img) => urlFor(img).width(1200).url());
+// with no uploaded asset.
+const toImageUrls = (imgs?: SanityImage[]): string[] =>
+  (imgs ?? []).filter(hasAsset).map((img) => urlFor(img).width(1200).url());
 
 const toRow = (p: SanityProject): Project => ({
   project: p.title ?? "",
@@ -72,6 +86,19 @@ const toRow = (p: SanityProject): Project => ({
   withLink: p.collaboratorLink,
 });
 
+// Resolve the SEO singleton into the flat shape the <head> needs, applying
+// fallbacks so the tags are never empty. The unfurl image is cropped to the
+// 1200×630 Open Graph standard and returned as an absolute CDN URL.
+const toSeo = (seo: HomeData["seo"]): Seo => ({
+  title: seo?.title || SITE_TITLE,
+  description: seo?.description ?? "",
+  ogImageUrl: hasAsset(seo?.ogImage)
+    ? urlFor(seo!.ogImage!).width(1200).height(630).fit("crop").url()
+    : null,
+  ogImageAlt: seo?.ogImage?.alt ?? null,
+  tags: (seo?.tags ?? []).filter((t): t is string => Boolean(t)),
+});
+
 export async function fetchHomeData(): Promise<HomeProps> {
   const data = await client.fetch<HomeData>(HOME_QUERY);
   const homepage = data?.homepage ?? null;
@@ -81,6 +108,7 @@ export async function fetchHomeData(): Promise<HomeProps> {
   const mobileImages = toImageUrls(homepage?.mobileImages);
 
   return {
+    seo: toSeo(data?.seo ?? null),
     studio: homepage?.studio ?? [],
     services: (homepage?.services ?? []).filter(
       (s): s is string => Boolean(s),

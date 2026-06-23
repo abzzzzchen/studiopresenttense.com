@@ -12,6 +12,14 @@ export const structure: StructureResolver = (S) =>
         .id('homepage')
         .schemaType('homepage')
         .child(S.document().schemaType('homepage').documentId('homepage')),
+      // SEO & Social is a singleton — site-wide meta tags.
+      S.listItem()
+        .title('SEO & Social')
+        .id('seoSettings')
+        .schemaType('seoSettings')
+        .child(
+          S.document().schemaType('seoSettings').documentId('seoSettings'),
+        ),
       S.divider(),
       // Projects, grouped by status: Currently first, a divider, then Previously.
       S.listItem()
