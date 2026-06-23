@@ -5,7 +5,7 @@ type Rect = { top: number; left: number; width: number; height: number };
 
 // Fraction of the hero's scroll over which the image morphs to the corner.
 // Lower = the image docks after less scrolling (and overlaps the body less).
-const DOCK_AT = 0.6;
+const DOCK_AT = 0.75;
 
 // Mobile-only hero image. It starts as a full-width portrait image in the hero
 // flow (between the email and the body) and, as the hero scrolls past the top,
@@ -40,7 +40,7 @@ export function MobileHeroImage({
   // tracking the (often choppy) mobile scroll position 1:1. The transforms below
   // read from this softened value rather than scrollYProgress directly.
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 300,
+    stiffness: 400,
     damping: 40,
     restDelta: 0.001,
   });
