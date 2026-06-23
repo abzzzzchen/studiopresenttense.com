@@ -62,6 +62,9 @@ export default function Home({
   const heroRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [emailJustCopied, setEmailJustCopied] = useState(false);
+  // Which side the "copied" confirmation aligns to — set to the opposite half
+  // from where the email was tapped, so the text appears away from the finger.
+  const [copiedAlign, setCopiedAlign] = useState<"left" | "right">("left");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -71,7 +74,13 @@ export default function Home({
   // server is usually reached on a phone — `navigator.clipboard` is undefined,
   // so guard it and fall back to execCommand. Feedback shows regardless of which
   // path runs, so the user always gets confirmation.
-  const copyEmail = useCallback(() => {
+  const copyEmail = useCallback((e: MouseEvent<HTMLElement>) => {
+    // Align the confirmation to the opposite half from the tap: tap the left
+    // half → align right, and vice versa, so the text isn't under the finger.
+    const rect = e.currentTarget.getBoundingClientRect();
+    const tappedLeftHalf = e.clientX < rect.left + rect.width / 2;
+    setCopiedAlign(tappedLeftHalf ? "right" : "left");
+
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(EMAIL).catch(() => fallbackCopy(EMAIL));
     } else {
@@ -182,7 +191,13 @@ export default function Home({
         <div className="relative">
           <HoverEmail onCopy={copyEmail} />
           {emailJustCopied ? (
-            <Text className="text-left absolute left-0 top-full z-20">
+            <Text
+              // The tap-side flip is mobile-only; md:text-left pins it back to
+              // the left on desktop regardless of which half was clicked.
+              className={`absolute left-0 right-0 top-full z-20 md:text-left ${
+                copiedAlign === "right" ? "text-right" : "text-left"
+              }`}
+            >
               Email address copied.
             </Text>
           ) : null}

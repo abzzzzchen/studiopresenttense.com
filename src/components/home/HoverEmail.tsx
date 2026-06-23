@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 
 import { EMAIL } from "@/lib/constants";
 
@@ -34,7 +34,11 @@ const GHOST_DAMP = 0.6;
 // the three rows gets its own random transform per letter, so no two rows match.
 // The transform is instant.
 // Keeps `data-fit-line` so the existing width-fitting logic still scales it.
-export function HoverEmail({ onCopy }: { onCopy: () => void }) {
+export function HoverEmail({
+  onCopy,
+}: {
+  onCopy: (e: MouseEvent<HTMLElement>) => void;
+}) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   // Per letter, one transform per row: [main, ghost, ghost].
   const [transforms, setTransforms] = useState<Record<number, CharTransform[]>>(
