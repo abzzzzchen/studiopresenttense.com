@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { motion } from "motion/react";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -19,7 +20,14 @@ export default function App({ Component, pageProps }: AppProps) {
           content="telephone=no, email=no, address=no, date=no"
         />
       </Head>
-      <Component {...pageProps} />
+      {/* Fade the whole site in on load: opacity 0 → 1 over 0.3s, nothing else. */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Component {...pageProps} />
+      </motion.div>
     </>
   );
 }

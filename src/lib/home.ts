@@ -71,10 +71,13 @@ const SITE_TITLE = "Studio Present Tense";
 const hasAsset = (img?: SanityImage): boolean =>
   Boolean(img && typeof img === "object" && "asset" in img && img.asset);
 
-// Turn an array of Sanity image objects into resolved URLs, skipping entries
-// with no uploaded asset.
-const toImageUrls = (imgs?: SanityImage[]): string[] =>
-  (imgs ?? []).filter(hasAsset).map((img) => urlFor(img).width(1200).url());
+// Turn an array of Sanity image objects into resolved URLs at the given pixel
+// width, skipping entries with no uploaded asset. `auto("format")` serves
+// webp/avif where supported (smaller and sharper than the default jpeg).
+const toImageUrls = (imgs: SanityImage[] | undefined, width: number): string[] =>
+  (imgs ?? [])
+    .filter(hasAsset)
+    .map((img) => urlFor(img).width(width).auto("format").url());
 
 const toRow = (p: SanityProject): Project => ({
   project: p.title ?? "",
@@ -104,8 +107,12 @@ export async function fetchHomeData(): Promise<HomeProps> {
   const homepage = data?.homepage ?? null;
   const projects = data?.projects ?? [];
 
-  const desktopImages = toImageUrls(homepage?.images);
-  const mobileImages = toImageUrls(homepage?.mobileImages);
+  // Desktop images are served large enough for the expanded lightbox, which can
+  // reach ~2400 device px on a Retina display. The same URL also backs the small
+  // bottom-left thumbnail (CSS scales it down), so opening the lightbox reuses
+  // the already-cached image — instant and crisp, with no second fetch / flash.
+  const desktopImages = toImageUrls(homepage?.images, 2400);
+  const mobileImages = toImageUrls(homepage?.mobileImages, 1600);
 
   return {
     seo: toSeo(data?.seo ?? null),

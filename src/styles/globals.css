@@ -7,7 +7,11 @@
     url("/fonts/LayGrotesk/LayGrotesk-Bold.woff") format("woff");
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
+  /* `block` instead of `swap` so text isn't first painted in a fallback face
+     and then swapped (the flash). Paired with a <link rel="preload"> for the
+     woff2 in _document.tsx, the font is fetched before first paint, so the
+     block period is effectively invisible and text renders in LayGrotesk. */
+  font-display: block;
 }
 
 :root {
