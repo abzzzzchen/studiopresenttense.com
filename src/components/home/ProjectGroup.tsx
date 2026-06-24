@@ -58,7 +58,7 @@ function ScrollOnHover({
   return (
     <Text
       ref={ref}
-      className={`block overflow-hidden whitespace-nowrap text-ellipsis cursor-default ${className ?? ""}`}
+      className={`block overflow-x-clip overflow-y-visible whitespace-nowrap text-ellipsis cursor-default ${className ?? ""}`}
       onMouseEnter={() => setActive(true)}
       onMouseLeave={() => setActive(false)}
     >
